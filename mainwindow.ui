@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1920</width>
+    <height>1080</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="widget_back" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1920</width>
+      <height>1080</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <widget class="QTextEdit" name="textEdit">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>1050</y>
+       <width>1021</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_camera" native="true">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>60</y>
+       <width>621</width>
+       <height>981</height>
+      </rect>
+     </property>
+     <widget class="QLabel" name="label_time">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>10</y>
+        <width>281</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_initCamera">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>311</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>初始化相机</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>601</width>
+        <height>441</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>相机流</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>510</y>
+        <width>601</width>
+        <height>461</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>相机抓图</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>820</x>
+       <y>10</y>
+       <width>281</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>融合光谱在线检测系统</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_larman" native="true">
+     <property name="geometry">
+      <rect>
+       <x>980</x>
+       <y>570</y>
+       <width>661</width>
+       <height>471</height>
+      </rect>
+     </property>
+     <widget class="QPushButton" name="pushButton_initLarman">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>311</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>初始化拉曼</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_LarmanCap">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>10</y>
+        <width>311</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>采集</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_test">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>311</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>测试</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_lumo" native="true">
+     <property name="geometry">
+      <rect>
+       <x>980</x>
+       <y>60</y>
+       <width>661</width>
+       <height>501</height>
+      </rect>
+     </property>
+     <widget class="QPushButton" name="pushButton_initLumo">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>471</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>初始化lumo</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_lumoCapture">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>241</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>手动抓取</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_lumo">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>641</width>
+        <height>381</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>抓取信息</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_lumo">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>10</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_lumoCapture_auto">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>60</y>
+        <width>221</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>自动抓取</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_lumo_autotime">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>60</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>2000</number>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="widget_diankong" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>331</width>
+       <height>981</height>
+      </rect>
+     </property>
+     <widget class="QPushButton" name="pushButton_initEleControl">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>311</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>初始化电控</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_diankong_state">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>311</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>连接状态</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_pushControl_1">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>250</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1号制动</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_pushControl_2">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>250</y>
+        <width>121</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>2号制动</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButton_close">
+     <property name="geometry">
+      <rect>
+       <x>1864</x>
+       <y>10</y>
+       <width>41</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>关闭</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_mini">
+     <property name="geometry">
+      <rect>
+       <x>1810</x>
+       <y>10</y>
+       <width>41</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_type">
+     <property name="geometry">
+      <rect>
+       <x>1650</x>
+       <y>60</y>
+       <width>261</width>
+       <height>981</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>塑料识别类型</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

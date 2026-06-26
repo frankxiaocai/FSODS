@@ -1,0 +1,40 @@
+# Qt Creator 相关
+*.user
+*.user.*
+*.pro.user
+*.pro.user.*
+.qtcreator/
+*.qmlproject.user
+*.qmlproject.user.*
+*.qmlproject.*
+*.qmlcache
+*.qmlcache.*
+
+# 编译输出
+build/
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+*.cmake
+Makefile
+*.a
+*.so
+*.so.*
+*.dll
+*.lib
+*.obj
+*.o
+
+# 系统文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 测试数据/临时文件
+*.csv
+*.xlsx
+*.xls
+*.log
+*.tmp
