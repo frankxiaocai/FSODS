@@ -367,15 +367,29 @@ HSIProcessor::VoteResult HSIProcessor::voteFinalLabel(
         }
     }
 
-    if (result.totalPixels <= 0 || result.plasticPixels <= 0)
+    // Background pixels are ignored for the final decision.
+    // validPixels means all non-background pixels:
+    //     known plastic pixels (1-7) + Unknown pixels (8).
+    const int validPixels = result.plasticPixels + result.unknownPixels;
+
+    if (validPixels <= 0 || result.plasticPixels <= 0)
     {
         result.finalLabel = 8;
         return result;
     }
 
+    // Avoid a few noisy pixels triggering a plastic label.
+    if (result.plasticPixels < minPlasticPixels_)
+    {
+        result.finalLabel = 8;
+        return result;
+    }
+
+    // Here plasticRatio is computed only among non-background pixels.
+    // Background pixels do not participate in output or voting.
     result.plasticRatio =
         static_cast<double>(result.plasticPixels)
-        / static_cast<double>(result.totalPixels);
+        / static_cast<double>(validPixels);
 
     int bestLabel = 1;
     int bestCount = 0;

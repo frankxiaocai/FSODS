@@ -53,13 +53,16 @@ public:
     bool setSpatialBin(int bin);//空间像素合并
     bool setSpectralBin(int bin);//光谱波段合并
 
+    // --------------------------- 高光谱采集启停 ---------------------------
+    bool startAcquisition();             // 开启采集
+    bool stopAcquisition();              // 停止采集
+
     // --------------------------- 采集 X 行自动停止 ---------------------------
     void setAcquireLineCount(int lines);  // 设置采集行数 X
-    bool startAcquisition();             // 开启采集流
-    bool stopAcquisition();              // 停止采集流
 
 signals:
     void sig_batchFinished(const HyperLineBatch &batch);// X行采集完成信号
+    void sig_HSDataCallback(SI_U8* pBuffer, SI_64 frameSize, SI_64 frameNumber);
 
 private:
     // --------------------------- 数据回调 ---------------------------
@@ -76,10 +79,13 @@ private:
     int    m_bands = 224;//波段数
     SI_64  m_lineSizeBytes = 0;//单行理论字节数
 
-    int     m_acquireLines = 10;//预设 X 行
-    int     m_currentLineCount = 0;//当前已采集 X 行
-    QByteArray m_batchBuffer;//按 BIL 拼接好的 X 行数据 QByteArray
+    int    m_acquireLines = 10;//预设 X 行
+    int    m_currentLineCount = 0;//已采集 X 行
     std::vector<unsigned char> m_batchBuffer_vecChar;//按 BIL 拼接好的 X 行数据 vecChar
+
+private slots:
+    // 实际业务处理函数
+    void slot_onDataArrive(SI_U8* pBuffer, SI_64 frameSize, SI_64 frameNumber);
 };
 
 #endif // HYPERSPECTRALCAMERA_H

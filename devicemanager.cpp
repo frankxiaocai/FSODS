@@ -186,25 +186,79 @@ void DeviceManager::pushControl(int num)
     m_siemensModbusPlc->pushControltest(num,true);
 }
 
+void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch)
+{
+    // 1. 生成带时间戳的文件名，避免覆盖
+    QString timeStr = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    QString filePath = QString("E:/hyperspec_%1.raw").arg(timeStr);
+
+    // 2. 打开二进制文件
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        qCritical() << "文件打开失败：" << file.errorString();
+        return;
+    }
+
+    // 3. 一次性写入全部批量字节
+    const char* rawPtr = reinterpret_cast<const char*>(batch.data.data());
+    qint64 totalByte = batch.data.size();
+    qint64 writeRet = file.write(rawPtr, totalByte);
+
+    if (writeRet != totalByte)
+    {
+        qWarning() << "写入不完整！预期" << totalByte << "字节，实际写入" << writeRet;
+    }
+    file.close();
+
+    qDebug() << "原始光谱数据保存完成，路径：" << filePath;
+    qDebug() << "采集参数：width=" << batch.width << " bands=" << batch.bands
+             << " 实际行数=" << batch.receivedLines;
+}
+
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
 {
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("高光谱 结束采集&算法开始识别时间：" + currentTime);
-    //算法处理
-    int type = 666;
+    //算法分类
+    int type = 0;
     error_code_HSI errorHSI = m_HSIClassifier.classifyFinalLabel(batch,type);
     if(errorHSI!= Error_None_HSI)
     {
-        LOG_INFO("HSI塑料识别算法失败");
+        LOG_INFO("高光谱 塑料识别算法失败");
         return;
     }
     QString currentTime2 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("高光谱 算法识别结束时间：" + currentTime2);
     emit sig_plasticType(type);
+
     //执行制动
-    int delayMs = 3000;
-    QTimer::singleShot(delayMs,this,[=](){
-        m_error_simens = m_siemensModbusPlc->pushControltest(1,true);
-    });
-    //m_error_simens = m_siemensModbusPlc->pushControltest(1,true);
+    if(type == 1)
+    {
+        QTimer::singleShot(m_delayMsL1,this,[=](){
+            bool error_simens = m_siemensModbusPlc->pushControltest(1,true);
+        });
+    }
+    else if(type == 2)
+    {
+        QTimer::singleShot(m_delayMsL2,this,[=](){
+            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
+        });
+    }
+    else if(type == 3)
+    {
+        QTimer::singleShot(m_delayMsL3,this,[=](){
+            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
+        });
+    }
+    else if(type == 4)
+    {
+        QTimer::singleShot(m_delayMsL3,this,[=](){
+            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
+        });
+    }
+
+
+    //数据保存
+    writeBatch2Raw(batch);
 }

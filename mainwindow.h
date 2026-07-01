@@ -38,6 +38,10 @@ private slots:
 
     void on_pushButton_lumoCapture_auto_clicked();
 
+    void on_pushButton_lumoCapture_auto_2_clicked();
+
+    void on_pushButton_apply_clicked();
+
 private:
     Ui::MainWindow *ui;
     DeviceManager* m_DeviceManager;

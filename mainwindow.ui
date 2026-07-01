@@ -30,9 +30,9 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>1050</y>
-       <width>1021</width>
-       <height>31</height>
+       <y>920</y>
+       <width>971</width>
+       <height>161</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -45,7 +45,7 @@
        <x>350</x>
        <y>60</y>
        <width>621</width>
-       <height>981</height>
+       <height>501</height>
       </rect>
      </property>
      <widget class="QLabel" name="label_time">
@@ -79,8 +79,8 @@
        <rect>
         <x>10</x>
         <y>60</y>
-        <width>601</width>
-        <height>441</height>
+        <width>311</width>
+        <height>180</height>
        </rect>
       </property>
       <property name="text">
@@ -93,10 +93,10 @@
      <widget class="QLabel" name="label_image2">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>510</y>
-        <width>601</width>
-        <height>461</height>
+        <x>329</x>
+        <y>60</y>
+        <width>281</width>
+        <height>180</height>
        </rect>
       </property>
       <property name="text">
@@ -192,8 +192,8 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>471</width>
-        <height>41</height>
+        <width>201</width>
+        <height>91</height>
        </rect>
       </property>
       <property name="text">
@@ -203,9 +203,9 @@
      <widget class="QPushButton" name="pushButton_lumoCapture">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>241</width>
+        <x>220</x>
+        <y>10</y>
+        <width>261</width>
         <height>41</height>
        </rect>
       </property>
@@ -232,9 +232,9 @@
      <widget class="QSpinBox" name="spinBox_lumo">
       <property name="geometry">
        <rect>
-        <x>500</x>
+        <x>490</x>
         <y>10</y>
-        <width>151</width>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
@@ -248,9 +248,9 @@
      <widget class="QPushButton" name="pushButton_lumoCapture_auto">
       <property name="geometry">
        <rect>
-        <x>260</x>
+        <x>220</x>
         <y>60</y>
-        <width>221</width>
+        <width>171</width>
         <height>41</height>
        </rect>
       </property>
@@ -261,9 +261,9 @@
      <widget class="QSpinBox" name="spinBox_lumo_autotime">
       <property name="geometry">
        <rect>
-        <x>500</x>
+        <x>490</x>
         <y>60</y>
-        <width>151</width>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
@@ -274,6 +274,45 @@
        <number>2000</number>
       </property>
      </widget>
+     <widget class="QPushButton" name="pushButton_lumoCapture_auto_2">
+      <property name="geometry">
+       <rect>
+        <x>400</x>
+        <y>60</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>结束自动</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>610</x>
+        <y>10</y>
+        <width>41</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>行</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>610</x>
+        <y>60</y>
+        <width>41</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ms</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="widget_diankong" native="true">
      <property name="geometry">
@@ -281,7 +320,7 @@
        <x>10</x>
        <y>60</y>
        <width>331</width>
-       <height>981</height>
+       <height>501</height>
       </rect>
      </property>
      <widget class="QPushButton" name="pushButton_initEleControl">
@@ -380,6 +419,89 @@
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox_L1K">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>650</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>-99999</number>
+     </property>
+     <property name="maximum">
+      <number>99999</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox_L2k">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>650</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>-99999</number>
+     </property>
+     <property name="maximum">
+      <number>99999</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox_L3K">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>650</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>-99999</number>
+     </property>
+     <property name="maximum">
+      <number>99999</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>650</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>延迟时间ms</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_apply">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>652</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>应用</string>
      </property>
     </widget>
    </widget>

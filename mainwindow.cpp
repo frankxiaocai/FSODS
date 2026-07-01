@@ -245,3 +245,19 @@ void MainWindow::on_pushButton_lumoCapture_auto_clicked()
     qDebug() << "高光谱 已启动自动抓取";
 }
 
+
+void MainWindow::on_pushButton_lumoCapture_auto_2_clicked()
+{
+    m_autoTimer->stop();
+    qDebug() << "高光谱 已结束自动抓取";
+}
+
+
+void MainWindow::on_pushButton_apply_clicked()
+{
+    m_DeviceManager->setdelayMsL1(ui->spinBox_L1K->value());
+    m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
+    m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
+
+}
+

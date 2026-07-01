@@ -69,13 +69,36 @@ bool ModelWrapper::loadModel(
 		}
 
 		char* inputName = session_->GetInputName(0, allocator);
-		char* outputName = session_->GetOutputName(0, allocator);
-
 		inputName_ = (inputName != nullptr) ? inputName : "";
-		outputName_ = (outputName != nullptr) ? outputName : "";
-
 		allocator.Free(inputName);
-		allocator.Free(outputName);
+
+		// Prefer the probability output instead of the hard-label output.
+		// sklearn-onnx classifiers usually export:
+		//     output 0: label
+		//     output 1: probabilities
+		// Unknown judgment requires the probability/score matrix.
+		outputName_.clear();
+		const size_t outputCount = session_->GetOutputCount();
+		for (size_t i = 0; i < outputCount; ++i)
+		{
+			char* outputName = session_->GetOutputName(i, allocator);
+			std::string candidate = (outputName != nullptr) ? outputName : "";
+			allocator.Free(outputName);
+
+			if (outputName_.empty())
+			{
+				outputName_ = candidate;
+			}
+
+			if (candidate == "probabilities" ||
+				candidate == "probability_tensor" ||
+				candidate.find("probab") != std::string::npos ||
+				candidate.find("Probability") != std::string::npos)
+			{
+				outputName_ = candidate;
+				break;
+			}
+		}
 
 		if (inputName_.empty() || outputName_.empty())
 		{

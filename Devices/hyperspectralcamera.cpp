@@ -2,7 +2,10 @@
 #include "HyperspectralCamera.h"
 #include <QDebug>
 
-HyperspectralCamera::HyperspectralCamera(QObject *parent) : QObject(parent) {}
+HyperspectralCamera::HyperspectralCamera(QObject *parent) : QObject(parent)
+{
+    connect(this,&HyperspectralCamera::sig_HSDataCallback,this,&HyperspectralCamera::slot_onDataArrive);
+}
 HyperspectralCamera::~HyperspectralCamera()
 {
     stopAcquisition();
@@ -121,11 +124,6 @@ void HyperspectralCamera::setAcquireLineCount(int lines) {
 bool HyperspectralCamera::startAcquisition() {
     if (!m_isInited || m_isAcquiring) return false;
 
-    // 重置
-    m_currentLineCount = 0;
-    //m_batchBuffer.clear();
-    m_batchBuffer_vecChar.clear();
-
     // 注册回调函数
     int st = SI_RegisterDataCallback(m_handle, dataCallback, this);
     if (st != 0) return false;
@@ -162,32 +160,58 @@ bool HyperspectralCamera::stopAcquisition() {
  */
 int HyperspectralCamera::dataCallback(SI_U8* pBuffer, SI_64 frameSize, SI_64 frameNumber, void* pCtx)
 {
+
     HyperspectralCamera* cam = reinterpret_cast<HyperspectralCamera*>(pCtx);
+    cam->emit sig_HSDataCallback(pBuffer,frameSize,frameNumber);
 
-    //cam->m_batchBuffer.append((const char*)pBuffer, (int)frameSize);
-    auto& buf = cam->m_batchBuffer_vecChar;
-    // buf.reserve(buf.size() + frameSize);
-    // buf.insert(buf.end(), pBuffer, pBuffer + frameSize);
-    size_t oldSize = buf.size();
-    buf.reserve(oldSize + frameSize);// 预分配容量，减少内存重分配
-    buf.resize(oldSize + frameSize);// 扩大容器有效长度
-    std::memcpy(&buf[oldSize], pBuffer, frameSize);// 直接内存拷贝
+    // auto& buf = cam->m_batchBuffer_vecChar;
+    // size_t oldSize = buf.size();
+    // buf.reserve(oldSize + frameSize);// 预分配容量
+    // buf.resize(oldSize + frameSize);// 扩大容器有效长度
+    // std::memcpy(&buf[oldSize], pBuffer, frameSize);// 直接内存拷贝
 
-    cam->m_currentLineCount++;
-    if (cam->m_currentLineCount >= cam->m_acquireLines)
-    {
-        HyperLineBatch batch;
-        //batch.data = cam->m_batchBuffer;
-        batch.data = cam->m_batchBuffer_vecChar;
-        batch.width = cam->m_width;
-        batch.bands = cam->m_bands;
-        batch.requestedLines = cam->m_acquireLines;
-        batch.receivedLines = cam->m_currentLineCount;
+    // cam->m_currentLineCount++;
+    // if (cam->m_currentLineCount >= cam->m_acquireLines)
+    // {
+    //     HyperLineBatch batch;
+    //     batch.data = cam->m_batchBuffer_vecChar;
+    //     batch.width = cam->m_width;
+    //     batch.bands = cam->m_bands;
+    //     batch.requestedLines = cam->m_acquireLines;
+    //     batch.receivedLines = cam->m_currentLineCount;
 
-        emit cam->sig_batchFinished(batch);
-        cam->stopAcquisition();
-    }
+    //     emit cam->sig_batchFinished(batch);
+    //     cam->stopAcquisition();
+    // }
 
     return 0;
 
+}
+
+void HyperspectralCamera::slot_onDataArrive(SI_U8 *pBuffer, SI_64 frameSize, SI_64 frameNumber)
+{
+    auto& buf = m_batchBuffer_vecChar;
+    size_t oldSize = buf.size();
+    buf.reserve(oldSize + frameSize);// 预分配容量
+    buf.resize(oldSize + frameSize);// 扩大容器有效长度
+    std::memcpy(&buf[oldSize], pBuffer, frameSize);// 直接内存拷贝
+
+    m_currentLineCount++;
+    if (m_currentLineCount >= m_acquireLines)
+    {
+        HyperLineBatch batch;
+        batch.data = m_batchBuffer_vecChar;
+        batch.width = m_width;
+        batch.bands = m_bands;
+        batch.requestedLines = m_acquireLines;
+        batch.receivedLines = m_currentLineCount;
+
+        emit sig_batchFinished(batch);
+        stopAcquisition();
+
+        m_currentLineCount = 0;
+        m_batchBuffer_vecChar.clear();
+    }
+
+    return ;
 }

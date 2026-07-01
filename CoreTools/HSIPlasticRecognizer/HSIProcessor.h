@@ -59,7 +59,7 @@ struct HyperLineBatch
 {
     std::vector<unsigned char> data;
     int width = 0;
-    int bands = 0;
+    int bands = 224;
     int bytesPerPixel = 2;
     int requestedLines = 0;
     int receivedLines = 0;
@@ -149,8 +149,11 @@ private:
     int blockRows_ = 256;
     int blockCols_ = 256;
 
-    double minPlasticRatio_ = 0.05;
+    // Ratio of known plastic pixels among non-background pixels.
+    // Background pixels are ignored before this ratio is computed.
+    double minPlasticRatio_ = 0.50;
     double minDominantRatio_ = 0.60;
+    int minPlasticPixels_ = 100;
 
     bool unknownEnabled_ = true;
     float unknownThreshold_ = 0.60f;
