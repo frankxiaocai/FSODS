@@ -23,6 +23,11 @@ public:
     bool beltControl(int num ,bool startstop);//皮带启停控制 num1-9
     bool beltSpeedControl(int num ,int Frequency);//皮带速度控制 num1-9 Frequency0-5000
     bool pushControltest(int num ,bool startstop);//ok
+    bool turnControl(int open);
+    bool zuoControl();
+    bool youControl();
+    bool zuoControl2();
+    bool youControl2();
 
 signals:
 

@@ -36,11 +36,19 @@ private slots:
 
     void slot_autoCapture();
 
-    void on_pushButton_lumoCapture_auto_clicked();
+    // void on_pushButton_lumoCapture_auto_clicked();
 
-    void on_pushButton_lumoCapture_auto_2_clicked();
+    // void on_pushButton_lumoCapture_auto_2_clicked();
 
     void on_pushButton_apply_clicked();
+
+    void on_pushButton_turn_clicked();
+
+    void on_checkBox_clicked(bool checked);
+
+    void on_pushButton_beltonoff_clicked();
+
+    void on_pushButton_beltonoff_2_clicked();
 
 private:
     Ui::MainWindow *ui;

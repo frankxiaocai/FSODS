@@ -181,16 +181,54 @@ Error_code DeviceManager::larmanCapture()
 
 }
 
+void DeviceManager::beltOpen(int num, bool isopen)
+{
+    m_siemensModbusPlc->beltControl(num,isopen);
+}
+
+void DeviceManager::beltSpeed(int num, int speed)
+{
+    m_siemensModbusPlc->beltSpeedControl(num,speed);
+}
+
 void DeviceManager::pushControl(int num)
 {
     m_siemensModbusPlc->pushControltest(num,true);
+}
+
+void DeviceManager::turnControl(int order)
+{
+    if(order == 0)
+    {
+        m_siemensModbusPlc->turnControl(0);
+    }
+    else if(order == 1)
+    {
+        m_siemensModbusPlc->turnControl(1);
+    }
+    else if(order == 2)
+    {
+        m_siemensModbusPlc->zuoControl();
+    }
+    else if(order == 3)
+    {
+        m_siemensModbusPlc->zuoControl2();
+    }
+    else if(order == 4)
+    {
+        m_siemensModbusPlc->youControl();
+    }
+    else if(order == 5)
+    {
+        m_siemensModbusPlc->youControl2();
+    }
 }
 
 void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch)
 {
     // 1. 生成带时间戳的文件名，避免覆盖
     QString timeStr = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    QString filePath = QString("E:/hyperspec_%1.raw").arg(timeStr);
+    QString filePath = QString("E:/test/hyperspec_%1.raw").arg(timeStr);
 
     // 2. 打开二进制文件
     QFile file(filePath);
@@ -233,32 +271,44 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
     emit sig_plasticType(type);
 
     //执行制动
-    if(type == 1)
+    if(m_testType == 1)
     {
         QTimer::singleShot(m_delayMsL1,this,[=](){
             bool error_simens = m_siemensModbusPlc->pushControltest(1,true);
         });
     }
-    else if(type == 2)
+    else if(m_testType == 2)
     {
         QTimer::singleShot(m_delayMsL2,this,[=](){
             bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
         });
     }
-    else if(type == 3)
+    else if(m_testType == 3)
     {
         QTimer::singleShot(m_delayMsL3,this,[=](){
-            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
+            bool error_simens = m_siemensModbusPlc->zuoControl();
+
+            QTimer::singleShot(500,this,[=](){
+                bool error_simens = m_siemensModbusPlc->zuoControl2();
+            });
         });
     }
-    else if(type == 4)
+    else if(m_testType == 4)
     {
         QTimer::singleShot(m_delayMsL3,this,[=](){
-            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
+            bool error_simens = m_siemensModbusPlc->youControl();
+
+            QTimer::singleShot(500,this,[=](){
+                bool error_simens = m_siemensModbusPlc->youControl2();
+            });
         });
     }
 
 
     //数据保存
-    writeBatch2Raw(batch);
+    if(m_isSave)
+    {
+        writeBatch2Raw(batch);
+    }
+
 }

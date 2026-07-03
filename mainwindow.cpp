@@ -238,26 +238,51 @@ void MainWindow::slot_autoCapture()
 }
 
 
-void MainWindow::on_pushButton_lumoCapture_auto_clicked()
-{
-    m_autoTimer->setInterval(ui->spinBox_lumo_autotime->value());
-    m_autoTimer->start();
-    qDebug() << "高光谱 已启动自动抓取";
-}
+// void MainWindow::on_pushButton_lumoCapture_auto_clicked()
+// {
+//     m_autoTimer->setInterval(ui->spinBox_lumo_autotime->value());
+//     m_autoTimer->start();
+//     qDebug() << "高光谱 已启动自动抓取";
+// }
 
 
-void MainWindow::on_pushButton_lumoCapture_auto_2_clicked()
-{
-    m_autoTimer->stop();
-    qDebug() << "高光谱 已结束自动抓取";
-}
+// void MainWindow::on_pushButton_lumoCapture_auto_2_clicked()
+// {
+//     m_autoTimer->stop();
+//     qDebug() << "高光谱 已结束自动抓取";
+// }
 
 
 void MainWindow::on_pushButton_apply_clicked()
 {
+    m_DeviceManager->setType(ui->spinBox_testType->value());
     m_DeviceManager->setdelayMsL1(ui->spinBox_L1K->value());
     m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
     m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
 
+}
+
+
+void MainWindow::on_pushButton_turn_clicked()
+{
+    m_DeviceManager->turnControl(ui->spinBox_turn->value());
+}
+
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    m_DeviceManager->setIsSave(checked);
+}
+
+
+void MainWindow::on_pushButton_beltonoff_clicked()
+{
+    m_DeviceManager->beltOpen(ui->spinBox_beltnum->value(),ui->checkBox_beltonoff->checkState());
+}
+
+
+void MainWindow::on_pushButton_beltonoff_2_clicked()
+{
+    m_DeviceManager->beltSpeed(ui->spinBox_beltnum->value(),ui->spinBox_beltSpeed->value()*200);
 }
 

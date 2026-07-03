@@ -246,3 +246,198 @@ bool PlcController::pushControltest(int num, bool startstop)
     delete reply;
     return ok;
 }
+
+bool PlcController::turnControl(int open)
+{
+    if(!m_connected)
+        return false;
+
+
+    quint16 regAddr =
+        313;
+
+    QModbusDataUnit unit(
+        QModbusDataUnit::HoldingRegisters,
+        regAddr,
+        1);
+
+    unit.setValue(
+        0,
+        open);
+
+    auto *reply =
+        m_modbus->sendWriteRequest(unit, 1);
+
+    if(!reply)
+        return false;
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok =
+        (reply->error() == QModbusDevice::NoError);
+
+    if(!ok)
+    {
+        emit logInfo(
+            QString("万向轮失败"));
+    }
+
+    delete reply;
+
+    return ok;
+}
+
+bool PlcController::zuoControl()
+{
+    if(!m_connected)
+        return false;
+
+
+    quint16 regAddr =
+        314;
+
+    QModbusDataUnit unit(
+        QModbusDataUnit::HoldingRegisters,
+        regAddr,
+        1);
+
+    unit.setValue(
+        0,
+        1);
+
+    auto *reply =
+        m_modbus->sendWriteRequest(unit, 1);
+
+    if(!reply)
+        return false;
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok =
+        (reply->error() == QModbusDevice::NoError);
+
+
+    delete reply;
+
+    return ok;
+}
+
+bool PlcController::youControl()
+{
+    if(!m_connected)
+        return false;
+
+
+    quint16 regAddr =
+        315;
+
+    QModbusDataUnit unit(
+        QModbusDataUnit::HoldingRegisters,
+        regAddr,
+        1);
+
+    unit.setValue(
+        0,
+        1);
+
+    auto *reply =
+        m_modbus->sendWriteRequest(unit, 1);
+
+    if(!reply)
+        return false;
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok =
+        (reply->error() == QModbusDevice::NoError);
+
+
+    delete reply;
+
+    return ok;
+}
+
+bool PlcController::zuoControl2()
+{
+    if(!m_connected)
+        return false;
+
+
+    quint16 regAddr =
+        314;
+
+    QModbusDataUnit unit(
+        QModbusDataUnit::HoldingRegisters,
+        regAddr,
+        1);
+
+    unit.setValue(
+        0,
+        0);
+
+    auto *reply =
+        m_modbus->sendWriteRequest(unit, 1);
+
+    if(!reply)
+        return false;
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok =
+        (reply->error() == QModbusDevice::NoError);
+
+
+    delete reply;
+
+    return ok;
+}
+
+bool PlcController::youControl2()
+{
+    if(!m_connected)
+        return false;
+
+
+    quint16 regAddr =
+        315;
+
+    QModbusDataUnit unit(
+        QModbusDataUnit::HoldingRegisters,
+        regAddr,
+        1);
+
+    unit.setValue(
+        0,
+        0);
+
+    auto *reply =
+        m_modbus->sendWriteRequest(unit, 1);
+
+    if(!reply)
+        return false;
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok =
+        (reply->error() == QModbusDevice::NoError);
+
+
+    delete reply;
+
+    return ok;
+}

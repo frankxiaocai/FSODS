@@ -29,11 +29,16 @@ public:
     Error_code lumoCapture(int XNum);
     Error_code larmanCapture();
 
+    void setType(int type){m_testType = type;}
     void setdelayMsL1(int lt){m_delayMsL1 = lt;}
     void setdelayMsL2(int lt){m_delayMsL2 = lt;}
     void setdelayMsL3(int lt){m_delayMsL3 = lt;}
+    void setIsSave(bool aaa){m_isSave = aaa;}
 
+    void beltOpen(int num,bool isopen);
+    void beltSpeed(int num,int speed);
     void pushControl(int num);//推杆 （序号）
+    void turnControl(int order);
 
 private:
     HikCamera* m_HikCamera = nullptr;
@@ -47,9 +52,12 @@ private:
     double m_Exposure = 10;//曝光时间 ms
     double m_FrameRate = 200;//帧率
 
+    int m_testType = 1;//类型 测试用
     int m_delayMsL1 = 1000;//1号制动延迟 ms
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
+
+    bool m_isSave = false;
 
 
 private:
