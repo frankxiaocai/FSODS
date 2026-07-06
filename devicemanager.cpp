@@ -17,17 +17,12 @@ DeviceManager::~DeviceManager()
 
 void DeviceManager::init()
 {
-    FileIO::instance()->readConfig(m_Configs);
-    qDebug()<<"拉曼 Server1IP:"<<m_Configs.Server1IP;
-    qDebug()<<"电控 Server2IP:"<<m_Configs.Server2IP;
-
     //相机采集信号
     connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
     connect(m_HikCamera, &HikCamera::sig_autoCaptured, this, &DeviceManager::sig_autoCaptured);
     // 高光谱采集信号
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
-
 }
 
 Error_code DeviceManager::initEleControl()
@@ -93,7 +88,7 @@ Error_code DeviceManager::initLumo()
 
 Error_code DeviceManager::initLarman()
 {
-    Error_code err = m_larmanModbusTCP->connectToDevice(m_Configs.Server1IP.toString());
+    Error_code err = m_larmanModbusTCP->connectToDevice("192.168.3.30");
     if(err!=Error_None)
     {
         LOG_INFO("拉曼初始化失败");

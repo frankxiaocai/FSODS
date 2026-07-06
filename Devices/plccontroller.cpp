@@ -14,6 +14,7 @@ PlcController::PlcController(QObject *parent)
 PlcController::~PlcController()
 {
     disconnect();
+    qDebug() << "PLC电控 析构释放";
 
 }
 

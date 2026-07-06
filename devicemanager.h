@@ -47,7 +47,6 @@ private:
     PlcController* m_siemensModbusPlc = nullptr;
     HSIProcessor m_HSIClassifier;//HSI塑料分类算法
     RamanPlasticRecognizer m_RamanPlasticRecognizer;//拉曼塑料分类算法
-    otherConfigs m_Configs;//配置参数
 
     double m_Exposure = 10;//曝光时间 ms
     double m_FrameRate = 200;//帧率
@@ -57,8 +56,7 @@ private:
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
 
-    bool m_isSave = false;
-
+    bool m_isSave = false;//标识位
 
 private:
     void writeBatch2Raw(const HyperLineBatch &batch);
