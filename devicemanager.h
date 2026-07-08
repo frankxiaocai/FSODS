@@ -63,6 +63,7 @@ private:
 
 private slots:
     void slot_onFrameArrived(const HyperLineBatch &batch);
+    void slot_onWasteArrived(quint16 oldVal, quint16 newVal);
 
 signals:
     void sig_newImage(const QImage& img);//图像流

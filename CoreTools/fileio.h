@@ -12,7 +12,6 @@
 class FileIO
 {
 public:
-
     // 单例获取
     static FileIO* instance();
 

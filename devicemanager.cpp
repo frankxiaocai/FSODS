@@ -23,17 +23,21 @@ void DeviceManager::init()
     // 高光谱采集信号
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
+    //电控
+    connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onWasteArrived);
 }
 
 Error_code DeviceManager::initEleControl()
 {
-    bool error = m_siemensModbusPlc->connect("192.168.0.140",501);
+    bool error = m_siemensModbusPlc->plcconnect("192.168.0.140",501);
     if(!error)
     {
         LOG_INFO("电控连接失败");
         return Error_EleControl;
     }
     LOG_INFO("电控初始化成功");
+    m_siemensModbusPlc->setReadLoopAdress(330);
+    m_siemensModbusPlc->startReadReg();
     return Error_None;
 }
 
@@ -306,4 +310,10 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
         writeBatch2Raw(batch);
     }
 
+}
+
+void DeviceManager::slot_onWasteArrived(quint16 oldVal, quint16 newVal)
+{
+    //物体到达信号 执行采集
+    lumoCapture(10);
 }
