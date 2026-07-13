@@ -8,15 +8,19 @@ qt_standard_project_setup()
 # ==============================
 #  海康 SDK 路径
 # ==============================
-set(HIK_SDK_DIR ${CMAKE_SOURCE_DIR}/HIKSDK)
+set(HIK_SDK_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/HIKSDK)
 # ==============================
 #  高光谱 SDK 路径
 # ==============================
-set(LUMO_SDK_DIR ${CMAKE_SOURCE_DIR}/Lumo_Sensor_SDK)
+set(LUMO_SDK_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/Lumo_Sensor_SDK)
 # ==============================
 #  高光谱 胡杏算法 依赖onnxruntime 路径
 # ==============================
-set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/onnxruntime-win-x64-1.10.0)
+set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/ThirdParty/onnxruntime-win-x64-1.10.0)
+# OpenCV配置
+# ==============================
+
+# ==============================
 
 qt_add_executable(FSODS
     WIN32 MACOSX_BUNDLE

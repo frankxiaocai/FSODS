@@ -455,7 +455,6 @@ void PlcController::startReadReg()
     // 先读取一次初始值，避免首次误判变化
     readRegLoop();
     m_readTimer->start();
-    emit logInfo("开始循环读取寄存器330");
 }
 
 void PlcController::stopReadReg()
@@ -472,16 +471,16 @@ void PlcController::readRegLoop()
     // 1. PLC未连接直接返回
     if (!m_connected)
     {
-        emit logInfo("读取寄存器失败：PLC未连接");
+        qDebug()<<"读取寄存器失败：PLC未连接";
         return;
     }
 
     // 构造读取请求：保持寄存器，地址330，读取1个寄存器
-    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, m_readLoopAdress, 1);
+    QModbusDataUnit readUnit(QModbusDataUnit::DiscreteInputs, m_readLoopAdress, 1);
     QModbusReply* reply = m_modbus->sendReadRequest(readUnit, 1);
     if (!reply)
     {
-        emit logInfo("寄存器330读取失败：发送请求为空");
+        qDebug()<<"离散输入读取失败：发送请求为空";
         return;
     }
 
@@ -496,25 +495,21 @@ void PlcController::readRegLoop()
     bool readOk = (reply->error() == QModbusDevice::NoError);
     if (!readOk)
     {
-        emit logInfo(QString("读取330寄存器通讯错误：%1").arg(reply->errorString()));
+        qDebug()<<QString("读取离散输入通讯错误：%1").arg(reply->errorString());
         delete reply;
         return;
     }
 
     // 获取当前寄存器数值
     quint16 currVal = reply->result().value(0);
+    qDebug()<<"当前离散值："<<currVal;
+
     delete reply;
 
     // 对比上次值，发生变化则触发信号+日志
-    if (currVal != m_lastRegVal)
+    if ((currVal != m_lastRegVal)&(currVal == 1))
     {
-        quint16 old = m_lastRegVal;
-        m_lastRegVal = currVal;
-        emit sig_regChanged(old, currVal);
+        emit sig_regChanged();
     }
-}
-
-void PlcController::setReadLoopAdress(quint16 adr)
-{
-    m_readLoopAdress = adr;
+    m_lastRegVal = currVal;
 }

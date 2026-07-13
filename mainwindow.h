@@ -33,29 +33,20 @@ private slots:
     void on_pushButton_test_clicked();
     void on_pushButton_pushControl_1_clicked();
     void on_pushButton_pushControl_2_clicked();
-
-    void slot_autoCapture();
-
-    // void on_pushButton_lumoCapture_auto_clicked();
-
-    // void on_pushButton_lumoCapture_auto_2_clicked();
-
     void on_pushButton_apply_clicked();
-
     void on_pushButton_turn_clicked();
-
     void on_checkBox_clicked(bool checked);
-
     void on_pushButton_beltonoff_clicked();
-
     void on_pushButton_beltonoff_2_clicked();
+    void on_pushButton_pushControl_close_clicked();
+    void on_pushButton_pushControl_2close_clicked();
 
 private:
     Ui::MainWindow *ui;
     DeviceManager* m_DeviceManager;
-    QTimer* m_autoTimer;
 
     void showError(Error_code err);// 错误提示函数
-    QString plasticTypeToString(int code);
+    QString plasticTypeToString(int code);//类型显示
+    void updateCountLabel(int type);//计数
 };
 #endif // MAINWINDOW_H

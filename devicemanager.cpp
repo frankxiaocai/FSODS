@@ -36,7 +36,6 @@ Error_code DeviceManager::initEleControl()
         return Error_EleControl;
     }
     LOG_INFO("电控初始化成功");
-    m_siemensModbusPlc->setReadLoopAdress(330);
     m_siemensModbusPlc->startReadReg();
     return Error_None;
 }
@@ -82,9 +81,9 @@ Error_code DeviceManager::initLumo()
     bool initializeerr = m_HyperspectralCamera->initialize();
     if(!initializeerr){return Error_Hyperspectral;}
 
-    //设置相机参数
-    m_HyperspectralCamera->setExposure(m_Exposure);//曝光时间 ms
-    m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
+    // //设置相机参数
+    // m_HyperspectralCamera->setExposure(m_Exposure);//曝光时间 ms
+    // m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
 
     LOG_INFO("Lumo初始化成功");
     return Error_None;
@@ -180,6 +179,20 @@ Error_code DeviceManager::larmanCapture()
 
 }
 
+void DeviceManager::setExposure(double aaa)
+{
+    m_Exposure = aaa;
+    //设置相机参数
+    m_HyperspectralCamera->setExposure(m_Exposure);//曝光时间 ms
+}
+
+void DeviceManager::setFrameRate(double aaa)
+{
+    m_FrameRate = aaa;
+    //设置相机参数
+    m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
+}
+
 void DeviceManager::beltOpen(int num, bool isopen)
 {
     m_siemensModbusPlc->beltControl(num,isopen);
@@ -190,9 +203,9 @@ void DeviceManager::beltSpeed(int num, int speed)
     m_siemensModbusPlc->beltSpeedControl(num,speed);
 }
 
-void DeviceManager::pushControl(int num)
+void DeviceManager::pushControl(int num,bool op)
 {
-    m_siemensModbusPlc->pushControltest(num,true);
+    m_siemensModbusPlc->pushControltest(num,op);
 }
 
 void DeviceManager::turnControl(int order)
@@ -223,34 +236,74 @@ void DeviceManager::turnControl(int order)
     }
 }
 
-void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch)
+void DeviceManager::updateObjectCount(int objType)
 {
-    // 1. 生成带时间戳的文件名，避免覆盖
-    QString timeStr = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    QString filePath = QString("E:/test/hyperspec_%1.raw").arg(timeStr);
+    m_objCount[objType]++;
+    m_objTotal++;
+}
 
-    // 2. 打开二进制文件
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly))
+int DeviceManager::getObjTypeCount(int type)
+{
+    return m_objCount[type];
+}
+
+int DeviceManager::getObjTotalCount()
+{
+    return m_objTotal;
+}
+
+void DeviceManager::clearAllObjectCount()
+{
+    for(int i=0;i<=7;i++) m_objCount[i]=0;
+    m_objTotal=0;
+}
+
+void DeviceManager::testcount()
+{
+    int type = QRandomGenerator::global()->bounded(8);
+    emit emit sig_plasticType(type);
+}
+
+void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
+{
+    QString timeStr = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    QString saveDir = "E:/test";
+    QString rawFileName = QString("hyperspec_%1.raw").arg(timeStr);
+    QString txtFileName = QString("hyperspec_info.txt");
+
+    QString rawFilePath = QDir(saveDir).filePath(rawFileName);
+    QString txtFilePath = QDir(saveDir).filePath(txtFileName);
+
+    // ===================== 写入 RAW 二进制文件 =====================
+    QFile rawFile(rawFilePath);
+    if (!rawFile.open(QIODevice::WriteOnly))
     {
-        qCritical() << "文件打开失败：" << file.errorString();
+        LOG_ERROR(QString("高光谱raw文件打开失败：%1").arg(rawFilePath));
         return;
     }
 
-    // 3. 一次性写入全部批量字节
     const char* rawPtr = reinterpret_cast<const char*>(batch.data.data());
     qint64 totalByte = batch.data.size();
-    qint64 writeRet = file.write(rawPtr, totalByte);
+    rawFile.write(rawPtr, totalByte);
+    rawFile.close();
 
-    if (writeRet != totalByte)
+
+    // ===================== 写入配套 TXT 信息文件 =====================
+    QFile txtFile(txtFilePath);
+    if (!txtFile.open(QIODevice::Append | QIODevice::Text))
     {
-        qWarning() << "写入不完整！预期" << totalByte << "字节，实际写入" << writeRet;
+        LOG_ERROR(QString("高光谱txt文件打开失败：%1").arg(txtFilePath));
+        return;
     }
-    file.close();
 
-    qDebug() << "原始光谱数据保存完成，路径：" << filePath;
-    qDebug() << "采集参数：width=" << batch.width << " bands=" << batch.bands
-             << " 实际行数=" << batch.receivedLines;
+    QString txtContent = QString(
+                             "采集时间戳：%1\n"
+                             "采集类型type：%2\n"
+                             ).arg(timeStr).arg(type);
+
+    txtFile.write(txtContent.toUtf8());
+    txtFile.close();
+
 }
 
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
@@ -270,50 +323,62 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
     emit sig_plasticType(type);
 
     //执行制动
-    if(m_testType == 1)
+    switch (type)
     {
-        QTimer::singleShot(m_delayMsL1,this,[=](){
-            bool error_simens = m_siemensModbusPlc->pushControltest(1,true);
-        });
-    }
-    else if(m_testType == 2)
-    {
-        QTimer::singleShot(m_delayMsL2,this,[=](){
-            bool error_simens = m_siemensModbusPlc->pushControltest(2,true);
-        });
-    }
-    else if(m_testType == 3)
-    {
-        QTimer::singleShot(m_delayMsL3,this,[=](){
-            bool error_simens = m_siemensModbusPlc->zuoControl();
+    case 7:
+        QTimer::singleShot(m_delayMsL1, this, [=]() {
+            m_siemensModbusPlc->pushControltest(1, true);
 
-            QTimer::singleShot(500,this,[=](){
-                bool error_simens = m_siemensModbusPlc->zuoControl2();
+            QTimer::singleShot(1000, this, [=]() {
+                m_siemensModbusPlc->pushControltest(1, false);
             });
         });
-    }
-    else if(m_testType == 4)
-    {
-        QTimer::singleShot(m_delayMsL3,this,[=](){
-            bool error_simens = m_siemensModbusPlc->youControl();
+        break;
 
-            QTimer::singleShot(500,this,[=](){
-                bool error_simens = m_siemensModbusPlc->youControl2();
+    case 5:
+        QTimer::singleShot(m_delayMsL2, this, [=]() {
+            m_siemensModbusPlc->pushControltest(2, true);
+
+            QTimer::singleShot(1500, this, [=]() {
+                m_siemensModbusPlc->pushControltest(2, false);
             });
         });
+        break;
+
+    case 3:
+        QTimer::singleShot(m_delayMsL3, this, [=]() {
+            m_siemensModbusPlc->zuoControl();
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->zuoControl2();
+            });
+        });
+        break;
+
+    case 2:
+        QTimer::singleShot(m_delayMsL3, this, [=]() {
+            m_siemensModbusPlc->youControl();
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->youControl2();
+            });
+        });
+        break;
+
+    default:
+        // type不匹配任何值时的处理
+        if(m_isSave)
+        {
+            writeBatch2Raw(batch,type);
+        }
+        break;
     }
-
-
-    //数据保存
-    if(m_isSave)
-    {
-        writeBatch2Raw(batch);
-    }
-
 }
 
-void DeviceManager::slot_onWasteArrived(quint16 oldVal, quint16 newVal)
+void DeviceManager::slot_onWasteArrived()
 {
     //物体到达信号 执行采集
-    lumoCapture(10);
+    QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+    LOG_INFO("光栅 物体来了" + currentTime);
+    lumoCapture(m_XLines);
 }

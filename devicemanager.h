@@ -34,11 +34,22 @@ public:
     void setdelayMsL2(int lt){m_delayMsL2 = lt;}
     void setdelayMsL3(int lt){m_delayMsL3 = lt;}
     void setIsSave(bool aaa){m_isSave = aaa;}
+    void setExposure(double aaa);
+    void setFrameRate(double aaa);
+    void setXLines(int line){m_XLines = line;}
 
     void beltOpen(int num,bool isopen);
     void beltSpeed(int num,int speed);
-    void pushControl(int num);//推杆 （序号）
+    void pushControl(int num,bool op);//推杆 （序号）
     void turnControl(int order);
+
+    // 单次物体检测完成更新计数
+    void updateObjectCount(int objType);
+    int getObjTypeCount(int type);
+    int getObjTotalCount();
+    void clearAllObjectCount();
+
+    void testcount();
 
 private:
     HikCamera* m_HikCamera = nullptr;
@@ -56,21 +67,25 @@ private:
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
 
+    int m_XLines = 40;//采集行数
     bool m_isSave = false;//标识位
 
+    //计数
+    int m_objCount[8] = {0}; // 1~7七种 0未知
+    int m_objTotal = 0;
+
 private:
-    void writeBatch2Raw(const HyperLineBatch &batch);
+    void writeBatch2Raw(const HyperLineBatch &batch,int type);
 
 private slots:
     void slot_onFrameArrived(const HyperLineBatch &batch);
-    void slot_onWasteArrived(quint16 oldVal, quint16 newVal);
+    void slot_onWasteArrived();
 
 signals:
     void sig_newImage(const QImage& img);//图像流
     void sig_autoCaptured(const QImage& img,QDateTime time); //相机抓图
     void sig_batchFinished(const HyperLineBatch &batch);  // X 行高光谱
     void sig_plasticType(int type);// 塑料识别结果信号
-
 };
 
 #endif // DEVICEMANAGER_H

@@ -5,7 +5,6 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     ,m_DeviceManager(new DeviceManager(this))
-    ,m_autoTimer(new QTimer(this))
 {
     ui->setupUi(this);
     init();
@@ -59,10 +58,11 @@ void MainWindow::init()
     connect(m_DeviceManager, &DeviceManager::sig_plasticType, this, [=](int type) {
         QDateTime currenttime = QDateTime::currentDateTime();
         ui->label_type->setText(currenttime.toString("yyyy-MM-dd HH:mm:ss")+"\n塑料识别结果：" + plasticTypeToString(type));
+        //计数
+        updateCountLabel(type);
+
     });
 
-    //
-    connect(m_autoTimer, &QTimer::timeout, this, &MainWindow::slot_autoCapture);
 }
 
 void MainWindow::showError(Error_code err)
@@ -145,6 +145,49 @@ QString MainWindow::plasticTypeToString(int code)
     }
 }
 
+void MainWindow::updateCountLabel(int type)
+{
+    m_DeviceManager->updateObjectCount(type);
+    switch (type)
+    {
+    case 0:
+        ui->label_type00->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 1:
+        ui->label_type11->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 2:
+        ui->label_type22->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 3:
+        ui->label_type33->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 4:
+        ui->label_type44->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 5:
+        ui->label_type55->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 6:
+        ui->label_type66->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+
+    case 7:
+        ui->label_type77->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
+        break;
+    }
+
+    ui->label_typeAll2->setText(QString::number(m_DeviceManager->getObjTotalCount()));
+
+
+}
+
 void MainWindow::on_pushButton_initCamera_clicked()
 {
     Error_code error = m_DeviceManager->initCamera();
@@ -206,7 +249,7 @@ void MainWindow::on_pushButton_mini_clicked()
 
 void MainWindow::on_pushButton_test_clicked()
 {
-
+    m_DeviceManager->testcount();
 }
 
 void MainWindow::on_pushButton_initEleControl_clicked()
@@ -223,35 +266,14 @@ void MainWindow::on_pushButton_initEleControl_clicked()
 
 void MainWindow::on_pushButton_pushControl_1_clicked()
 {
-    m_DeviceManager->pushControl(1);
+    m_DeviceManager->pushControl(1,true);
 }
 
 
 void MainWindow::on_pushButton_pushControl_2_clicked()
 {
-    m_DeviceManager->pushControl(2);
+    m_DeviceManager->pushControl(2,true);
 }
-
-void MainWindow::slot_autoCapture()
-{
-    m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
-}
-
-
-// void MainWindow::on_pushButton_lumoCapture_auto_clicked()
-// {
-//     m_autoTimer->setInterval(ui->spinBox_lumo_autotime->value());
-//     m_autoTimer->start();
-//     qDebug() << "高光谱 已启动自动抓取";
-// }
-
-
-// void MainWindow::on_pushButton_lumoCapture_auto_2_clicked()
-// {
-//     m_autoTimer->stop();
-//     qDebug() << "高光谱 已结束自动抓取";
-// }
-
 
 void MainWindow::on_pushButton_apply_clicked()
 {
@@ -259,9 +281,11 @@ void MainWindow::on_pushButton_apply_clicked()
     m_DeviceManager->setdelayMsL1(ui->spinBox_L1K->value());
     m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
     m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
+    m_DeviceManager->setFrameRate(ui->spinBox_zhenlv->value());
+    m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
+    m_DeviceManager->setXLines(ui->spinBox_lumo->value());
 
 }
-
 
 void MainWindow::on_pushButton_turn_clicked()
 {
@@ -284,5 +308,17 @@ void MainWindow::on_pushButton_beltonoff_clicked()
 void MainWindow::on_pushButton_beltonoff_2_clicked()
 {
     m_DeviceManager->beltSpeed(ui->spinBox_beltnum->value(),ui->spinBox_beltSpeed->value()*200);
+}
+
+
+void MainWindow::on_pushButton_pushControl_close_clicked()
+{
+    m_DeviceManager->pushControl(1,false);
+}
+
+
+void MainWindow::on_pushButton_pushControl_2close_clicked()
+{
+    m_DeviceManager->pushControl(2,false);
 }
 

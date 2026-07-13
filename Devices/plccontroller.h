@@ -35,13 +35,11 @@ public:
     void stopReadReg();
     void readRegLoop();
 
-    void setReadLoopAdress(quint16 adr);
-
 signals:
 
     void logInfo(const QString &logMes);
     // 寄存器发生变化信号，对外抛出新旧值
-    void sig_regChanged(quint16 oldVal, quint16 newVal);
+    void sig_regChanged();
 
 private:
     QModbusTcpClient *m_modbus = nullptr;
@@ -52,7 +50,7 @@ private:
     // 读取定时器
     QTimer* m_readTimer;
     //循环读取地址
-    quint16 m_readLoopAdress = 330;
+    quint16 m_readLoopAdress = 001;
     // 保存上一次寄存器的值，用于对比变化
     quint16 m_lastRegVal = 0;
     // 读取周期ms，可自行调整
