@@ -10,6 +10,7 @@
 #include <QCoreApplication>
 #include "../CoreTools/mystruct.h"
 #include "MvCameraControl.h"
+#include <opencv2/opencv.hpp>
 
 class HikCamera : public QObject
 {
@@ -49,7 +50,6 @@ private:
     std::mutex m_dataMtx;
     double m_relX = -1.0;  // -1代表无有效物体
 
-    // 图像处理参数（可外部配置）
     int m_binThresh = 120;    // 二值化阈值
     int m_minArea = 500;      // 最小物体面积，过滤噪点
     int m_maxArea = 100000;   // 最大物体面积

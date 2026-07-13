@@ -113,92 +113,91 @@ void HikCamera::closeDevice()
 
 void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameInfo)
 {
-    // if (!pData || !pFrameInfo)
-    //     return;
+    if (!pData || !pFrameInfo)
+        return;
 
-    // unsigned int width = pFrameInfo->nWidth;
-    // unsigned int height = pFrameInfo->nHeight;
-    // int channel = 1;
-    // MvGvspPixelType pixType = pFrameInfo->enPixelType;
+    unsigned int width = pFrameInfo->nWidth;
+    unsigned int height = pFrameInfo->nHeight;
+    int channel = 1;
+    MvGvspPixelType pixType = pFrameInfo->enPixelType;
 
-    // // 匹配SDK真实枚举常量
-    // if (pixType == PixelType_Gvsp_Mono8)
-    // {
-    //     channel = 1;
-    // }
-    // else if (pixType == PixelType_Gvsp_BGR8_Packed)
-    // {
-    //     channel = 3;
-    // }
-    // else if (pixType == PixelType_Gvsp_RGB8_Packed)
-    // {
-    //     channel = 3;
-    // }
-    // else
-    // {
-    //     std::lock_guard<std::mutex> lock(m_dataMtx);
-    //     m_relX = -1.0;
-    //     return;
-    // }
+    if (pixType == PixelType_Gvsp_Mono8)
+    {
+        channel = 1;
+    }
+    else if (pixType == PixelType_Gvsp_BGR8_Packed)
+    {
+        channel = 3;
+    }
+    else if (pixType == PixelType_Gvsp_RGB8_Packed)
+    {
+        channel = 3;
+    }
+    else
+    {
+        std::lock_guard<std::mutex> lock(m_dataMtx);
+        m_relX = -1.0;
+        return;
+    }
 
-    // // 零拷贝图像
-    // cv::Mat src(height, width, channel == 3 ? CV_8UC3 : CV_8UC1, pData);
-    // cv::Mat gray;
-    // if (channel == 3)
-    // {
-    //     gray = src;
-    //     // 如果是RGB格式则转BGR再灰度
-    //     if (pixType == PixelType_Gvsp_RGB8_Packed)
-    //         cv::cvtColor(src, src, cv::COLOR_RGB2BGR);
-    //     cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-    // }
-    // else
-    // {
-    //     gray = src;
-    // }
+    // 零拷贝图像
+    cv::Mat src(height, width, channel == 3 ? CV_8UC3 : CV_8UC1, pData);
+    cv::Mat gray;
+    if (channel == 3)
+    {
+        gray = src;
+        // 如果是RGB格式则转BGR再灰度
+        if (pixType == PixelType_Gvsp_RGB8_Packed)
+            cv::cvtColor(src, src, cv::COLOR_RGB2BGR);
+        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+    }
+    else
+    {
+        gray = src;
+    }
 
-    // // 二值化分割物体
-    // cv::Mat binImg;
-    // cv::threshold(gray, binImg, m_binThresh, 255, cv::THRESH_BINARY_INV);
+    // 二值化分割物体
+    cv::Mat binImg;
+    cv::threshold(gray, binImg, m_binThresh, 255, cv::THRESH_BINARY_INV);
 
-    // std::vector<std::vector<cv::Point>> contours;
-    // std::vector<cv::Vec4i> hierarchy;
-    // cv::findContours(binImg, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(binImg, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    // std::vector<std::vector<cv::Point>> validTargets;
-    // for (auto& cnt : contours)
-    // {
-    //     double area = cv::contourArea(cnt);
-    //     if (area > m_minArea && area < m_maxArea)
-    //     {
-    //         validTargets.push_back(cnt);
-    //     }
-    // }
+    std::vector<std::vector<cv::Point>> validTargets;
+    for (auto& cnt : contours)
+    {
+        double area = cv::contourArea(cnt);
+        if (area > m_minArea && area < m_maxArea)
+        {
+            validTargets.push_back(cnt);
+        }
+    }
 
-    // std::lock_guard<std::mutex> lock(m_dataMtx);
-    // if (validTargets.empty())
-    // {
-    //     m_relX = -1.0;
-    //     return;
-    // }
+    std::lock_guard<std::mutex> lock(m_dataMtx);
+    if (validTargets.empty())
+    {
+        m_relX = -1.0;
+        return;
+    }
 
-    // // 取面积最大物体
-    // auto maxCnt = *std::max_element(validTargets.begin(), validTargets.end(),
-    //                                 [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b)
-    //                                 {
-    //                                     return cv::contourArea(a) < cv::contourArea(b);
-    //                                 });
+    // 取面积最大物体
+    auto maxCnt = *std::max_element(validTargets.begin(), validTargets.end(),
+                                    [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b)
+                                    {
+                                        return cv::contourArea(a) < cv::contourArea(b);
+                                    });
 
-    // cv::Moments moment = cv::moments(maxCnt);
-    // if (moment.m00 < 1e-6)
-    // {
-    //     m_relX = -1.0;
-    //     return;
-    // }
+    cv::Moments moment = cv::moments(maxCnt);
+    if (moment.m00 < 1e-6)
+    {
+        m_relX = -1.0;
+        return;
+    }
 
-    // double centerX = moment.m10 / moment.m00;
-    // // X相对坐标 0~1
-    // m_relX = centerX / static_cast<double>(width);
+    double centerX = moment.m10 / moment.m00;
+    // X相对坐标 0~1
+    m_relX = centerX / static_cast<double>(width);
 }
 
 double HikCamera::getTargetRelX()
