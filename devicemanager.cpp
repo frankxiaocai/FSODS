@@ -261,7 +261,7 @@ void DeviceManager::clearAllObjectCount()
 void DeviceManager::testcount()
 {
     int type = QRandomGenerator::global()->bounded(8);
-    emit emit sig_plasticType(type);
+    emit sig_plasticType(type);
 }
 
 void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
