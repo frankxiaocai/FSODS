@@ -192,7 +192,7 @@ void DeviceManager::setFrameRate(double aaa)
 
 void DeviceManager::beltOpen(int num, bool isopen)
 {
-    m_siemensModbusPlc->beltControl(num,isopen);
+    m_siemensModbusPlc->beltOnOff(num,isopen);
 }
 
 void DeviceManager::beltSpeed(int num, int speed)
@@ -202,34 +202,34 @@ void DeviceManager::beltSpeed(int num, int speed)
 
 void DeviceManager::pushControl(int num,bool op)
 {
-    m_siemensModbusPlc->pushControltest(num,op);
+    m_siemensModbusPlc->pushOnOff(num,op);
 }
 
-void DeviceManager::turnControl(int order)
+void DeviceManager::turnControl(int num,int order)
 {
     if(order == 0)
     {
-        m_siemensModbusPlc->turnControl(0);
+        m_siemensModbusPlc->turnOnOff(num,false);
     }
     else if(order == 1)
     {
-        m_siemensModbusPlc->turnControl(1);
+        m_siemensModbusPlc->turnOnOff(num,true);
     }
     else if(order == 2)
     {
-        m_siemensModbusPlc->zuoControl();
+        m_siemensModbusPlc->turnZuo(num,true);
     }
     else if(order == 3)
     {
-        m_siemensModbusPlc->zuoControl2();
+        m_siemensModbusPlc->turnZuo(num,false);
     }
     else if(order == 4)
     {
-        m_siemensModbusPlc->youControl();
+        m_siemensModbusPlc->turnYou(num,true);
     }
     else if(order == 5)
     {
-        m_siemensModbusPlc->youControl2();
+        m_siemensModbusPlc->turnYou(num,false);
     }
 }
 
@@ -324,40 +324,40 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
     {
     case 7:
         QTimer::singleShot(m_delayMsL1, this, [=]() {
-            m_siemensModbusPlc->pushControltest(1, true);
+            m_siemensModbusPlc->pushOnOff(1, true);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->pushControltest(1, false);
+                m_siemensModbusPlc->pushOnOff(1, false);
             });
         });
         break;
 
     case 5:
         QTimer::singleShot(m_delayMsL2, this, [=]() {
-            m_siemensModbusPlc->pushControltest(2, true);
+            m_siemensModbusPlc->pushOnOff(2, true);
 
             QTimer::singleShot(1500, this, [=]() {
-                m_siemensModbusPlc->pushControltest(2, false);
+                m_siemensModbusPlc->pushOnOff(2, false);
             });
         });
         break;
 
     case 3:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->zuoControl();
+            m_siemensModbusPlc->turnZuo(1,true);
 
             QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->zuoControl2();
+                m_siemensModbusPlc->turnZuo(1,false);
             });
         });
         break;
 
     case 2:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->youControl();
+            m_siemensModbusPlc->turnYou(1,true);
 
             QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->youControl2();
+                m_siemensModbusPlc->turnYou(1,false);
             });
         });
         break;

@@ -43,6 +43,17 @@ struct otherConfigs
 
 };
 
+struct diankongConfigs
+{
+    int delayMsL1 = 2700;//1号制动延迟 ms
+    int delayMsL2 = 5500;
+    int delayMsL3 = 6500;
+    int delayMsL4 = 7500;
+    double Exposure = 10;//曝光时间 ms
+    double FrameRate = 200;//帧率
+    int XLines = 40;//采集行数
+};
+
 // 错误码
 enum Error_code : int
 {

@@ -17,6 +17,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::init()
 {
+    initUI();
     //相机相关
     connect(m_DeviceManager, &DeviceManager::sig_newImage, this, [=](const QImage& img) {
         ui->label_image1->setPixmap(
@@ -60,6 +61,14 @@ void MainWindow::init()
         updateCountLabel(type);
 
     });
+
+}
+
+void MainWindow::initUI()
+{
+    diankongConfigs dkc;
+    FileIO::instance()->readDianKongConfig(dkc);
+    setDiankongConfigs(dkc);
 
 }
 
@@ -186,6 +195,30 @@ void MainWindow::updateCountLabel(int type)
 
 }
 
+diankongConfigs MainWindow::getDiankongConfigs()
+{
+    diankongConfigs dkConfigs;
+    dkConfigs.delayMsL1 = ui->spinBox_L1K->value();
+    dkConfigs.delayMsL2 = ui->spinBox_L2k->value();
+    dkConfigs.delayMsL3 = ui->spinBox_L3K->value();
+    dkConfigs.delayMsL4 = ui->spinBox_L4K->value();
+    dkConfigs.Exposure = ui->spinBox_baoguang->value();
+    dkConfigs.FrameRate = ui->spinBox_zhenlv->value();
+    dkConfigs.XLines = ui->spinBox_lumo->value();
+    return dkConfigs;
+}
+
+void MainWindow::setDiankongConfigs(diankongConfigs dk)
+{
+    ui->spinBox_L1K->setValue(dk.delayMsL1);
+    ui->spinBox_L2k->setValue(dk.delayMsL2);
+    ui->spinBox_L3K->setValue(dk.delayMsL3);
+    ui->spinBox_L4K->setValue(dk.delayMsL4);
+    ui->spinBox_baoguang->setValue(dk.Exposure);
+    ui->spinBox_zhenlv->setValue(dk.FrameRate);
+    ui->spinBox_lumo->setValue(dk.XLines);
+}
+
 void MainWindow::on_pushButton_initCamera_clicked()
 {
     Error_code error = m_DeviceManager->initCamera();
@@ -206,13 +239,6 @@ void MainWindow::on_pushButton_initLumo_clicked()
         return;
     }
 }
-
-
-void MainWindow::on_pushButton_lumoCapture_clicked()
-{
-    m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
-}
-
 
 void MainWindow::on_pushButton_initLarman_clicked()
 {
@@ -275,7 +301,6 @@ void MainWindow::on_pushButton_pushControl_2_clicked()
 
 void MainWindow::on_pushButton_apply_clicked()
 {
-    m_DeviceManager->setType(ui->spinBox_testType->value());
     m_DeviceManager->setdelayMsL1(ui->spinBox_L1K->value());
     m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
     m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
@@ -283,11 +308,14 @@ void MainWindow::on_pushButton_apply_clicked()
     m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
     m_DeviceManager->setXLines(ui->spinBox_lumo->value());
 
+    diankongConfigs dkc = getDiankongConfigs();
+    FileIO::instance()->writeDianKongConfig(dkc);
+
 }
 
 void MainWindow::on_pushButton_turn_clicked()
 {
-    m_DeviceManager->turnControl(ui->spinBox_turn->value());
+    m_DeviceManager->turnControl(1,ui->spinBox_turn->value());
 }
 
 
@@ -318,5 +346,11 @@ void MainWindow::on_pushButton_pushControl_close_clicked()
 void MainWindow::on_pushButton_pushControl_2close_clicked()
 {
     m_DeviceManager->pushControl(2,false);
+}
+
+
+void MainWindow::on_pushButton_turn2_clicked()
+{
+    m_DeviceManager->turnControl(2,ui->spinBox_turn->value());
 }
 

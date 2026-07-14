@@ -43,7 +43,7 @@ public:
     void beltOpen(int num,bool isopen);
     void beltSpeed(int num,int speed);
     void pushControl(int num,bool op);//推杆 （序号）
-    void turnControl(int order);
+    void turnControl(int num,int order);
 
     // 物体计数
     void updateObjectCount(int objType);

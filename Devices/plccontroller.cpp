@@ -13,10 +13,9 @@ PlcController::PlcController(QObject *parent)
 
 PlcController::~PlcController()
 {
-    disconnect();
+    plcdisconnect();
     stopReadReg();
     qDebug() << "PLC电控 析构释放";
-
 }
 
 void PlcController::init()
@@ -52,8 +51,6 @@ bool PlcController::plcconnect(const QString &ip, quint16 port)
 
     if(!m_modbus->connectDevice())
     {
-        emit logInfo("连接失败");
-
         return false;
     }
 
@@ -68,23 +65,16 @@ bool PlcController::plcconnect(const QString &ip, quint16 port)
 
         if(timer.elapsed() > 3000)
         {
-            emit logInfo("连接超时");
-
             return false;
         }
     }
 
     m_connected = true;
 
-    emit logInfo(
-        QString("PLC连接成功: %1:%2")
-            .arg(ip)
-            .arg(port));
-
     return true;
 }
 
-void PlcController::disconnect()
+void PlcController::plcdisconnect()
 {
     if(m_modbus)
     {
@@ -94,12 +84,7 @@ void PlcController::disconnect()
     m_connected = false;
 }
 
-bool PlcController::isPlcconnect()
-{
-    return m_connected;
-}
-
-bool PlcController::beltControl(int num ,bool startstop)
+bool PlcController::beltOnOff(int num ,bool startstop)
 {
     if(!m_connected)
         return false;
@@ -133,19 +118,8 @@ bool PlcController::beltControl(int num ,bool startstop)
         QCoreApplication::processEvents();
     }
 
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-    if(!ok)
-    {
-        emit logInfo(
-            QString("变频器%1启停控制失败:%2")
-                .arg(num)
-                .arg(reply->errorString()));
-    }
-
+    bool ok = (reply->error() == QModbusDevice::NoError);
     delete reply;
-
     return ok;
 }
 
@@ -156,9 +130,6 @@ bool PlcController::beltSpeedControl(int num ,int frequency)
 
     if(num < 1 || num > 9)
     {
-        emit logInfo(
-            QString("变频器范围错误")
-                .arg(num));
         return false;
     }
 
@@ -185,23 +156,12 @@ bool PlcController::beltSpeedControl(int num ,int frequency)
         QCoreApplication::processEvents();
     }
 
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-    if(!ok)
-    {
-        emit logInfo(
-            QString("变频器%1频率写入失败:%2")
-                .arg(num)
-                .arg(reply->errorString()));
-    }
-
+    bool ok = (reply->error() == QModbusDevice::NoError);
     delete reply;
-
     return ok;
 }
 
-bool PlcController::pushControltest(int num, bool startstop)
+bool PlcController::pushOnOff(int num, bool startstop)
 {
     if (!m_connected)
         return false;
@@ -221,12 +181,10 @@ bool PlcController::pushControltest(int num, bool startstop)
     if (startstop)
     {
         unit.setValue(0,1);
-        //unit.setValue(1, 0);
     }
     else
     {
         unit.setValue(0, 0);
-        //unit.setValue(1, 1);
     }
 
     auto *reply = m_modbus->sendWriteRequest(unit, 1);
@@ -239,212 +197,121 @@ bool PlcController::pushControltest(int num, bool startstop)
     }
 
     bool ok = (reply->error() == QModbusDevice::NoError);
-
-    if (!ok)
-    {
-        emit logInfo(
-            QString("气动阀%1%2控制失败:%3")
-                .arg(num)
-                .arg(startstop ? "开" : "关")
-                .arg(reply->errorString()));
-    }
-
     delete reply;
     return ok;
 }
 
-bool PlcController::turnControl(int open)
+bool PlcController::turnOnOff(int num ,bool isok)
 {
-    if(!m_connected)
-        return false;
+    if(!m_connected){return false;}
 
+    quint16 regAddr;
+    if(num == 1)
+    {
+        regAddr = 313;
+    }
+    else
+    {
+        regAddr = 313;
+    }
 
-    quint16 regAddr =
-        313;
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
 
-    QModbusDataUnit unit(
-        QModbusDataUnit::HoldingRegisters,
-        regAddr,
-        1);
+    if(isok)
+    {
+        unit.setValue(0,1);
+    }
+    else
+    {
+        unit.setValue(0,0);
+    }
 
-    unit.setValue(
-        0,
-        open);
-
-    auto *reply =
-        m_modbus->sendWriteRequest(unit, 1);
-
-    if(!reply)
-        return false;
+    auto *reply = m_modbus->sendWriteRequest(unit, 1);
+    if(!reply){return false;}
 
     while(!reply->isFinished())
     {
         QCoreApplication::processEvents();
     }
 
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-    if(!ok)
-    {
-        emit logInfo(
-            QString("万向轮失败"));
-    }
-
+    bool ok = (reply->error() == QModbusDevice::NoError);
     delete reply;
-
     return ok;
 }
 
-bool PlcController::zuoControl()
+bool PlcController::turnZuo(int num,bool iszuo)
 {
-    if(!m_connected)
-        return false;
+    if(!m_connected){return false;}
+    quint16 regAddr;
+    if(num == 1)
+    {
+        regAddr = 314;
+    }
+    else
+    {
+        regAddr = 314;
+    }
 
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
 
-    quint16 regAddr =
-        314;
+    if(iszuo)
+    {
+        unit.setValue(0,1);
+    }
+    else
+    {
+        unit.setValue(0,0);//回正
+    }
 
-    QModbusDataUnit unit(
-        QModbusDataUnit::HoldingRegisters,
-        regAddr,
-        1);
+    auto *reply = m_modbus->sendWriteRequest(unit, 1);
 
-    unit.setValue(
-        0,
-        1);
-
-    auto *reply =
-        m_modbus->sendWriteRequest(unit, 1);
-
-    if(!reply)
-        return false;
+    if(!reply){return false;}
 
     while(!reply->isFinished())
     {
         QCoreApplication::processEvents();
     }
 
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-
+    bool ok = (reply->error() == QModbusDevice::NoError);
     delete reply;
-
     return ok;
 }
 
-bool PlcController::youControl()
+bool PlcController::turnYou(int num,bool isyou)
 {
-    if(!m_connected)
-        return false;
+    if(!m_connected){return false;}
+    quint16 regAddr;
+    if(num == 1)
+    {
+        regAddr = 315;
+    }
+    else
+    {
+        regAddr = 315;
+    }
 
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
 
-    quint16 regAddr =
-        315;
+    if(isyou)
+    {
+        unit.setValue(0,1);
+    }
+    else
+    {
+        unit.setValue(0,0);//回正
+    }
 
-    QModbusDataUnit unit(
-        QModbusDataUnit::HoldingRegisters,
-        regAddr,
-        1);
+    auto *reply = m_modbus->sendWriteRequest(unit, 1);
 
-    unit.setValue(
-        0,
-        1);
-
-    auto *reply =
-        m_modbus->sendWriteRequest(unit, 1);
-
-    if(!reply)
-        return false;
+    if(!reply){return false;}
 
     while(!reply->isFinished())
     {
         QCoreApplication::processEvents();
     }
 
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-
+    bool ok = (reply->error() == QModbusDevice::NoError);
     delete reply;
-
-    return ok;
-}
-
-bool PlcController::zuoControl2()
-{
-    if(!m_connected)
-        return false;
-
-
-    quint16 regAddr =
-        314;
-
-    QModbusDataUnit unit(
-        QModbusDataUnit::HoldingRegisters,
-        regAddr,
-        1);
-
-    unit.setValue(
-        0,
-        0);
-
-    auto *reply =
-        m_modbus->sendWriteRequest(unit, 1);
-
-    if(!reply)
-        return false;
-
-    while(!reply->isFinished())
-    {
-        QCoreApplication::processEvents();
-    }
-
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-
-    delete reply;
-
-    return ok;
-}
-
-bool PlcController::youControl2()
-{
-    if(!m_connected)
-        return false;
-
-
-    quint16 regAddr =
-        315;
-
-    QModbusDataUnit unit(
-        QModbusDataUnit::HoldingRegisters,
-        regAddr,
-        1);
-
-    unit.setValue(
-        0,
-        0);
-
-    auto *reply =
-        m_modbus->sendWriteRequest(unit, 1);
-
-    if(!reply)
-        return false;
-
-    while(!reply->isFinished())
-    {
-        QCoreApplication::processEvents();
-    }
-
-    bool ok =
-        (reply->error() == QModbusDevice::NoError);
-
-
-    delete reply;
-
     return ok;
 }
 
@@ -462,7 +329,6 @@ void PlcController::stopReadReg()
     if(m_readTimer->isActive())
     {
         m_readTimer->stop();
-        emit logInfo("停止循环读取寄存器330");
     }
 }
 
