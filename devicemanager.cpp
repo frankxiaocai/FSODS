@@ -19,7 +19,7 @@ void DeviceManager::init()
 {
     //相机采集信号
     connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
-    connect(m_HikCamera, &HikCamera::sig_autoCaptured, this, &DeviceManager::sig_autoCaptured);
+    connect(m_HikCamera, &HikCamera::sig_objectCapture, this, &DeviceManager::slot_onHikCaptureArrived);
     // 高光谱采集信号
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
@@ -53,9 +53,6 @@ Error_code DeviceManager::initCamera()
     {
         return Error_Camera;
     }
-
-    // 开启【传送带自动抓图】
-    m_HikCamera->enableAutoCapture(true);
 
     // 启动采集
     bool sg = m_HikCamera->startGrabbing();
@@ -373,6 +370,12 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
         }
         break;
     }
+}
+
+void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
+{
+    QImage imgTarget = QImage(targetOnly.data, targetOnly.cols, targetOnly.rows, targetOnly.step, QImage::Format_Grayscale8).copy();
+    emit sig_hikCaptured(imgTarget);
 }
 
 void DeviceManager::slot_onWasteArrived()

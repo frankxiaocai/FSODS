@@ -69,6 +69,13 @@ bool HikCamera::openDevice(int index)
 
     // 设置为连续采集模式
     MV_CC_SetEnumValue(m_handle, "TriggerMode", 0);
+
+    // 注册图像回调
+    nRet = MV_CC_RegisterImageCallBackEx(m_handle, imageCallback, this);
+    if (nRet != MV_OK) {
+        qDebug() << "注册回调失败：" << nRet;
+        return false;
+    }
     return true;
 }
 
@@ -76,15 +83,7 @@ bool HikCamera::startGrabbing()
 {
     if (!m_handle) return false;
 
-    // 注册图像回调
-    int nRet = MV_CC_RegisterImageCallBackEx(m_handle, imageCallback, this);
-    if (nRet != MV_OK) {
-        qDebug() << "注册回调失败：" << nRet;
-        return false;
-    }
-
-    // 开始采集
-    nRet = MV_CC_StartGrabbing(m_handle);
+    int nRet = MV_CC_StartGrabbing(m_handle);
     if (nRet != MV_OK) {
         qDebug() << "开始采集失败：" << nRet;
         return false;
@@ -116,46 +115,70 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
     if (!pData || !pFrameInfo)
         return;
 
-    unsigned int width = pFrameInfo->nWidth;
-    unsigned int height = pFrameInfo->nHeight;
-    int channel = 1;
-    MvGvspPixelType pixType = pFrameInfo->enPixelType;
+    if(m_captureFlag)//抓图
+    {
+        m_captureFlag = false;//只抓一次
 
-    if (pixType == PixelType_Gvsp_Mono8)
-    {
-        channel = 1;
-    }
-    else if (pixType == PixelType_Gvsp_BGR8_Packed)
-    {
-        channel = 3;
-    }
-    else if (pixType == PixelType_Gvsp_RGB8_Packed)
-    {
-        channel = 3;
-    }
-    else
-    {
-        std::lock_guard<std::mutex> lock(m_dataMtx);
-        m_relX = -1.0;
-        return;
+        unsigned int width = pFrameInfo->nWidth;
+        unsigned int height = pFrameInfo->nHeight;
+        int channel = 1;
+        MvGvspPixelType pixType = pFrameInfo->enPixelType;
+
+        if (pixType == PixelType_Gvsp_Mono8)
+        {
+            channel = 1;
+        }
+        else if (pixType == PixelType_Gvsp_BGR8_Packed)
+        {
+            channel = 3;
+        }
+        else if (pixType == PixelType_Gvsp_RGB8_Packed)
+        {
+            channel = 3;
+        }
+        else
+        {
+            m_relX = -1.0;
+            return;
+        }
+
+        // 零拷贝图像 统一转灰度图
+        cv::Mat src(height, width, channel == 3 ? CV_8UC3 : CV_8UC1, pData);
+        cv::Mat gray;
+        if (channel == 3)
+        {
+            gray = src;
+            if (pixType == PixelType_Gvsp_RGB8_Packed)
+                cv::cvtColor(src, src, cv::COLOR_RGB2BGR);
+            cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+        }
+        else
+        {
+            gray = src;
+        }
+
+        //计算物体质心像素
+        cv::Mat targetOnly;
+        double centerX = 0;
+        objectLocate(gray,targetOnly,centerX);
+        emit sig_objectCapture(targetOnly);
+
+        // 归一化相对 X 坐标
+        m_relX = (centerX)/(static_cast<double>(width));//物体贴图像最左侧：m_relX ≈ 0
+        emit sig_objectLocation(m_relX);
     }
 
-    // 零拷贝图像
-    cv::Mat src(height, width, channel == 3 ? CV_8UC3 : CV_8UC1, pData);
-    cv::Mat gray;
-    if (channel == 3)
-    {
-        gray = src;
-        // 如果是RGB格式则转BGR再灰度
-        if (pixType == PixelType_Gvsp_RGB8_Packed)
-            cv::cvtColor(src, src, cv::COLOR_RGB2BGR);
-        cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
-    }
-    else
-    {
-        gray = src;
-    }
+    // 转 Qt 图像
+    QImage currentImg(pData,
+                      pFrameInfo->nWidth,
+                      pFrameInfo->nHeight,
+                      QImage::Format_Grayscale8);
+    emit sig_newImage(currentImg.copy());//帧流
 
+}
+
+void HikCamera::objectLocate(cv::Mat gray, cv::Mat& targetOnly,double& centerX)
+{
     // 二值化分割物体
     cv::Mat binImg;
     cv::threshold(gray, binImg, m_binThresh, 255, cv::THRESH_BINARY_INV);
@@ -174,7 +197,6 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
         }
     }
 
-    std::lock_guard<std::mutex> lock(m_dataMtx);
     if (validTargets.empty())
     {
         m_relX = -1.0;
@@ -188,6 +210,12 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
                                         return cv::contourArea(a) < cv::contourArea(b);
                                     });
 
+    // ========== 生成掩码，只保留目标物体，背景全黑 ==========
+    cv::Mat mask = cv::Mat::zeros(gray.size(), CV_8UC1);
+    cv::drawContours(mask, std::vector<std::vector<cv::Point>>{maxCnt}, 0, cv::Scalar(255), -1);
+    gray.copyTo(targetOnly, mask);
+
+    //矩运算计算物体质心
     cv::Moments moment = cv::moments(maxCnt);
     if (moment.m00 < 1e-6)
     {
@@ -195,81 +223,10 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
         return;
     }
 
-    double centerX = moment.m10 / moment.m00;
-    // X相对坐标 0~1
-    m_relX = centerX / static_cast<double>(width);
+    //质心 X 像素坐标 (0.0 ≤ centerX ≤ width - 1)
+    centerX = moment.m10 / moment.m00;
+
 }
-
-double HikCamera::getTargetRelX()
-{
-    std::lock_guard<std::mutex> lock(m_dataMtx);
-    return m_relX;
-}
-
-//***********************抓图逻辑  勿删！！！    勿删！！！     勿删！！！
-// void __stdcall HikCamera::imageCallback(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
-// {
-//     HikCamera* pCamera = static_cast<HikCamera*>(pUser);
-//     if (!pCamera || !pData || !pFrameInfo)
-//         return;
-
-//     // 转 Qt 图像
-//     QImage currentImg(pData,
-//                       pFrameInfo->nWidth,
-//                       pFrameInfo->nHeight,
-//                       QImage::Format_Grayscale8);
-
-//     // ==============================
-//     // 传送带自动抓图
-//     // ==============================
-//     if (pCamera->m_autoCapture)
-//     {
-//         if (!pCamera->m_lastImage.isNull() && !pCamera->m_hasTriggered)
-//         {
-//             // ========== 传送带专用参数 ==========
-//             const int THRESHOLD      = 10;   // 灵敏度
-//             const int TRIGGER_PIXELS = 800;  // 触发大小
-//             int diffCount = 0;
-
-//             int skip = 2;
-//             int w = currentImg.width();
-//             int h = currentImg.height();
-
-//             for (int y = 0; y < h && diffCount <= TRIGGER_PIXELS; y += skip)
-//             {
-//                 const uchar* currLine = currentImg.constScanLine(y);
-//                 const uchar* lastLine = pCamera->m_lastImage.constScanLine(y);
-
-//                 for (int x = 0; x < w && diffCount <= TRIGGER_PIXELS; x += skip)
-//                 {
-//                     int delta = qAbs(currLine[x] - lastLine[x]);
-//                     if (delta > THRESHOLD)
-//                         diffCount++;
-//                 }
-//             }
-
-//             // 触发抓图
-//             if (diffCount > TRIGGER_PIXELS)
-//             {
-
-//                 emit pCamera->sig_autoCaptured(currentImg.copy(),QDateTime::currentDateTime());
-
-//                 // ==============================
-//                 // 自动重置：抓图后延迟重置
-//                 // ==============================
-//                 pCamera->m_hasTriggered = true;
-//                 const int trigtime = 2000;   // 延迟时间 毫秒
-//                 QTimer::singleShot(trigtime, pCamera, [pCamera]() {
-//                     pCamera->m_hasTriggered = false;
-//                 });
-//             }
-//         }
-
-//         pCamera->m_lastImage = currentImg.copy();
-//     }
-
-//     emit pCamera->sig_newImage(currentImg.copy());//帧流
-// }
 
 void __stdcall HikCamera::imageCallback(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
 {
@@ -279,4 +236,5 @@ void __stdcall HikCamera::imageCallback(unsigned char* pData, MV_FRAME_OUT_INFO_
     // pUser传入HikCamera实例指针，转发处理
     HikCamera* pCam = static_cast<HikCamera*>(pUser);
     pCam->processImage(pData, pFrameInfo);
+
 }

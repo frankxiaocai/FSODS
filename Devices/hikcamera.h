@@ -25,29 +25,19 @@ public:
     void stopGrabbing();//停止采集
     void closeDevice();//关闭设备
 
-    // 自动抓图开关
-    void enableAutoCapture(bool enable) { m_autoCapture = enable; }
-
-    // 定位相关
-    // 回调转发到成员函数处理图像
-    void processImage(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);
-
-    // 获取最新物体X相对坐标
-    double getTargetRelX();
+    void hikOnceCapture(){m_captureFlag = true;}//相机抓图
 
 public:
     void* m_handle = nullptr;//句柄
 
-
 private:
     static void __stdcall imageCallback(unsigned char* pData,MV_FRAME_OUT_INFO_EX* pFrameInfo,void* pUser);
+    void processImage(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);// 回调转发到成员函数处理图像
 
-    bool m_autoCapture = true;// 是否开启自动抓图
-    QImage m_lastImage;// 自动抓图最近一帧
-    bool m_hasTriggered = false;// 防止重复触发
+    void objectLocate(cv::Mat gray,cv::Mat& targetOnly,double& centerX);
 
     // 定位相关
-    std::mutex m_dataMtx;
+    bool m_captureFlag = false; // 抓拍触发标记
     double m_relX = -1.0;  // -1代表无有效物体
 
     int m_binThresh = 120;    // 二值化阈值
@@ -56,7 +46,8 @@ private:
 
 signals:
     void sig_newImage(const QImage& img);//图像流
-    void sig_autoCaptured(const QImage& img,QDateTime time); // 抓图结果
+    void sig_objectLocation(double relX);
+    void sig_objectCapture(cv::Mat targetOnly);
 };
 
 #endif // HIKCAMERA_H

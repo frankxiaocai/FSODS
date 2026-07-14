@@ -25,13 +25,11 @@ void MainWindow::init()
             );
     });
 
-    connect(m_DeviceManager, &DeviceManager::sig_autoCaptured, this, [=](const QImage& img, QDateTime time) {
+    connect(m_DeviceManager, &DeviceManager::sig_hikCaptured, this, [=](const QImage& img) {
         ui->label_image2->setPixmap(
             QPixmap::fromImage(img)
                 .scaled(ui->label_image2->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)
             );
-
-        ui->label_time->setText("触发时间：" + time.toString("yyyy-MM-dd HH:mm:ss"));
     });
 
     // 日志
