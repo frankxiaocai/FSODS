@@ -30,9 +30,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>570</y>
+       <y>610</y>
        <width>1001</width>
-       <height>511</height>
+       <height>461</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -135,7 +135,7 @@
        <x>1020</x>
        <y>570</y>
        <width>621</width>
-       <height>471</height>
+       <height>501</height>
       </rect>
      </property>
      <widget class="QPushButton" name="pushButton_initLarman">
@@ -254,7 +254,7 @@
       <widget class="QSpinBox" name="spinBox_L2k">
        <property name="geometry">
         <rect>
-         <x>220</x>
+         <x>290</x>
          <y>10</y>
          <width>101</width>
          <height>41</height>
@@ -273,7 +273,7 @@
       <widget class="QSpinBox" name="spinBox_L3K">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>400</x>
          <y>10</y>
          <width>101</width>
          <height>41</height>
@@ -292,7 +292,7 @@
       <widget class="QSpinBox" name="spinBox_L1K">
        <property name="geometry">
         <rect>
-         <x>70</x>
+         <x>180</x>
          <y>10</y>
          <width>101</width>
          <height>41</height>
@@ -330,7 +330,7 @@
       <widget class="QSpinBox" name="spinBox_baoguang">
        <property name="geometry">
         <rect>
-         <x>250</x>
+         <x>260</x>
          <y>60</y>
          <width>71</width>
          <height>41</height>
@@ -365,9 +365,9 @@
       <widget class="QLabel" name="label_8">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>180</x>
          <y>60</y>
-         <width>71</width>
+         <width>81</width>
          <height>41</height>
         </rect>
        </property>
@@ -378,7 +378,7 @@
       <widget class="QCheckBox" name="checkBox">
        <property name="geometry">
         <rect>
-         <x>540</x>
+         <x>550</x>
          <y>60</y>
          <width>51</width>
          <height>41</height>
@@ -391,7 +391,7 @@
       <widget class="QSpinBox" name="spinBox_lumo">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>400</x>
          <y>60</y>
          <width>81</width>
          <height>41</height>
@@ -407,7 +407,7 @@
       <widget class="QLabel" name="label_2">
        <property name="geometry">
         <rect>
-         <x>460</x>
+         <x>480</x>
          <y>60</y>
          <width>21</width>
          <height>41</height>
@@ -420,7 +420,7 @@
       <widget class="QSpinBox" name="spinBox_L4K">
        <property name="geometry">
         <rect>
-         <x>530</x>
+         <x>510</x>
          <y>10</y>
          <width>101</width>
          <height>41</height>
@@ -434,6 +434,25 @@
        </property>
        <property name="value">
         <number>6500</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="spinBox_L0K">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>10</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>-99999</number>
+       </property>
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+       <property name="value">
+        <number>0</number>
        </property>
       </widget>
      </widget>
@@ -704,7 +723,7 @@
        <x>1650</x>
        <y>60</y>
        <width>261</width>
-       <height>981</height>
+       <height>1011</height>
       </rect>
      </property>
      <widget class="QLabel" name="label_type">
@@ -1101,6 +1120,19 @@
        <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButton_saveLog">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>572</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>保存日志</string>
+     </property>
     </widget>
    </widget>
   </widget>

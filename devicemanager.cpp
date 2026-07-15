@@ -24,7 +24,7 @@ void DeviceManager::init()
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
     //电控
-    connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onWasteArrived);
+    connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onObjectArrived);
 }
 
 Error_code DeviceManager::initEleControl()
@@ -321,7 +321,7 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
         return;
     }
     QString currentTime2 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    LOG_INFO("高光谱 算法识别结束时间：" + currentTime2);
+    LOG_INFO("高光谱 算法识别结束&制动指令开始时间：" + currentTime2);
     emit sig_plasticType(type);
 
     //执行制动
@@ -375,6 +375,8 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
         }
         break;
     }
+    QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+    LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
 }
 
 void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
@@ -383,10 +385,14 @@ void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
     emit sig_hikCaptured(imgTarget);
 }
 
-void DeviceManager::slot_onWasteArrived()
+void DeviceManager::slot_onObjectArrived()
 {
     //物体到达信号 执行采集
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    LOG_INFO("光栅 物体来了" + currentTime);
-    lumoCapture(m_XLines);
+    LOG_INFO("光栅 识别到物体" + currentTime);
+    //延迟
+    QTimer::singleShot(m_delayMsL0, this, [=]() {
+        lumoCapture(m_XLines);
+    });
+
 }

@@ -32,9 +32,11 @@ public:
     Error_code larmanCapture();
 
     void setType(int type){m_testType = type;}
+    void setdelayMsL0(int lt){m_delayMsL0 = lt;}
     void setdelayMsL1(int lt){m_delayMsL1 = lt;}
     void setdelayMsL2(int lt){m_delayMsL2 = lt;}
     void setdelayMsL3(int lt){m_delayMsL3 = lt;}
+    void setdelayMsL4(int lt){m_delayMsL4 = lt;}
     void setIsSave(bool aaa){m_isSave = aaa;}
     void setExposure(double aaa);
     void setFrameRate(double aaa);
@@ -73,17 +75,19 @@ private:
     int m_delayMsL1 = 1000;//1号制动延迟 ms
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
+    int m_delayMsL4 = 4000;
+    int m_delayMsL0 = 0;//光栅至高光谱延迟 ms
 
     //物体计数
     int m_objCount[8] = {0}; // 1~7种塑料 + 未知
     int m_objTotal = 0;//总数
 
 private:
-    void writeBatch2Raw(const HyperLineBatch &batch,int type);
+    void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
 
 private slots:
-    void slot_onWasteArrived();
-    void slot_onFrameArrived(const HyperLineBatch &batch);
+    void slot_onObjectArrived();//物体来了
+    void slot_onFrameArrived(const HyperLineBatch &batch);//高光谱信号来了
     void slot_onHikCaptureArrived(cv::Mat targetOnly);
 
 signals:

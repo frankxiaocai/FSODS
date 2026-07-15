@@ -42,10 +42,13 @@ private slots:
 
     void on_checkBox_clicked(bool checked);
     void on_pushButton_apply_clicked();
+    void on_pushButton_saveLog_clicked();
 
     void on_pushButton_close_clicked();
     void on_pushButton_mini_clicked();
     void on_pushButton_test_clicked();
+
+
 
 private:
     Ui::MainWindow *ui;

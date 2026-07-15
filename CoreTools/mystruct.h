@@ -45,6 +45,7 @@ struct otherConfigs
 
 struct diankongConfigs
 {
+    int delayMsL0 = 0;//光栅-高光谱延迟
     int delayMsL1 = 2700;//1号制动延迟 ms
     int delayMsL2 = 5500;
     int delayMsL3 = 6500;

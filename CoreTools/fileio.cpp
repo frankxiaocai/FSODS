@@ -22,6 +22,7 @@ bool FileIO::writeDianKongConfig(const diankongConfigs &cfg)
     // 分组 [DianKong]
     setting.beginGroup("DianKong");
 
+    setting.setValue("delayMsL0", cfg.delayMsL0);
     setting.setValue("delayMsL1", cfg.delayMsL1);
     setting.setValue("delayMsL2", cfg.delayMsL2);
     setting.setValue("delayMsL3", cfg.delayMsL3);
@@ -46,6 +47,8 @@ bool FileIO::readDianKongConfig(diankongConfigs& cfg)
     setting.beginGroup("DianKong");
 
     // 存在key就读取，不存在自动使用结构体初始默认值
+    if (setting.contains("delayMsL0"))
+        cfg.delayMsL0 = setting.value("delayMsL0").toInt();
     if (setting.contains("delayMsL1"))
         cfg.delayMsL1 = setting.value("delayMsL1").toInt();
     if (setting.contains("delayMsL2"))

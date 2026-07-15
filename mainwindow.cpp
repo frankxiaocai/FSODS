@@ -33,9 +33,6 @@ void MainWindow::init()
             );
     });
 
-    // 日志
-    Logger::instance()->setTextEdit(ui->textEdit);
-
     //高光谱相关
     connect(m_DeviceManager, &DeviceManager::sig_batchFinished, this, [=](const HyperLineBatch& LineBatch)
             {
@@ -69,6 +66,9 @@ void MainWindow::initUI()
     diankongConfigs dkc;
     FileIO::instance()->readDianKongConfig(dkc);
     setDiankongConfigs(dkc);
+
+    // 日志
+    Logger::instance()->setTextEdit(ui->textEdit);
 
 }
 
@@ -198,6 +198,7 @@ void MainWindow::updateCountLabel(int type)
 diankongConfigs MainWindow::getDiankongConfigs()
 {
     diankongConfigs dkConfigs;
+    dkConfigs.delayMsL0 = ui->spinBox_L0K->value();
     dkConfigs.delayMsL1 = ui->spinBox_L1K->value();
     dkConfigs.delayMsL2 = ui->spinBox_L2k->value();
     dkConfigs.delayMsL3 = ui->spinBox_L3K->value();
@@ -210,6 +211,7 @@ diankongConfigs MainWindow::getDiankongConfigs()
 
 void MainWindow::setDiankongConfigs(diankongConfigs dk)
 {
+    ui->spinBox_L0K->setValue(dk.delayMsL0);
     ui->spinBox_L1K->setValue(dk.delayMsL1);
     ui->spinBox_L2k->setValue(dk.delayMsL2);
     ui->spinBox_L3K->setValue(dk.delayMsL3);
@@ -301,9 +303,11 @@ void MainWindow::on_pushButton_pushControl_2_clicked()
 
 void MainWindow::on_pushButton_apply_clicked()
 {
+    m_DeviceManager->setdelayMsL0(ui->spinBox_L0K->value());
     m_DeviceManager->setdelayMsL1(ui->spinBox_L1K->value());
     m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
     m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
+    m_DeviceManager->setdelayMsL4(ui->spinBox_L4K->value());
     m_DeviceManager->setFrameRate(ui->spinBox_zhenlv->value());
     m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
     m_DeviceManager->setXLines(ui->spinBox_lumo->value());
@@ -352,5 +356,18 @@ void MainWindow::on_pushButton_pushControl_2close_clicked()
 void MainWindow::on_pushButton_turn2_clicked()
 {
     m_DeviceManager->turnControl(2,ui->spinBox_turn->value());
+}
+
+
+void MainWindow::on_pushButton_saveLog_clicked()
+{
+    QString text = ui->textEdit->toPlainText();
+    QFile file("E:/test/LOG.txt");
+    if(file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream out(&file);
+        out << text;
+        file.close();
+    }
 }
 
