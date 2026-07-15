@@ -8,7 +8,6 @@
 #include <QThread>
 #include <QMutex>
 #include <QCoreApplication>
-#include "../CoreTools/mystruct.h"
 #include "MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
@@ -26,6 +25,7 @@ public:
     void closeDevice();//关闭设备
 
     void hikOnceCapture(){m_captureFlag = true;}//相机抓图
+    void objectLocate(cv::Mat gray,cv::Mat& targetOnly,double& normX);
 
 public:
     void* m_handle = nullptr;//句柄
@@ -34,20 +34,14 @@ private:
     static void __stdcall imageCallback(unsigned char* pData,MV_FRAME_OUT_INFO_EX* pFrameInfo,void* pUser);
     void processImage(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);// 回调转发到成员函数处理图像
 
-    void objectLocate(cv::Mat gray,cv::Mat& targetOnly,double& centerX);
-
     // 定位相关
     bool m_captureFlag = false; // 抓拍触发标记
-    double m_relX = -1.0;  // -1代表无有效物体
-
-    int m_binThresh = 120;    // 二值化阈值
-    int m_minArea = 500;      // 最小物体面积，过滤噪点
-    int m_maxArea = 100000;   // 最大物体面积
+    double m_relX = -1.0;       // 归一化相对 X 坐标
 
 signals:
     void sig_newImage(const QImage& img);//图像流
     void sig_objectLocation(double relX);
-    void sig_objectCapture(cv::Mat targetOnly);
+    void sig_objectCapture(cv::Mat mergeMat);
 };
 
 #endif // HIKCAMERA_H

@@ -158,13 +158,9 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
         }
 
         //计算物体质心像素
-        cv::Mat targetOnly;
-        double centerX = 0;
-        objectLocate(gray,targetOnly,centerX);
-        emit sig_objectCapture(targetOnly);
-
-        // 归一化相对 X 坐标
-        m_relX = (centerX)/(static_cast<double>(width));//物体贴图像最左侧：m_relX ≈ 0
+        cv::Mat mergeMat;
+        objectLocate(gray,mergeMat,m_relX);
+        emit sig_objectCapture(mergeMat);
         emit sig_objectLocation(m_relX);
     }
 
@@ -177,55 +173,57 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
 
 }
 
-void HikCamera::objectLocate(cv::Mat gray, cv::Mat& targetOnly,double& centerX)
+void HikCamera::objectLocate(cv::Mat gray, cv::Mat& targetOnly, double& normX)
 {
-    // 二值化分割物体
-    cv::Mat binImg;
-    cv::threshold(gray, binImg, m_binThresh, 255, cv::THRESH_BINARY_INV);
+    // 初始化输出
+    double centerX = 0.0;
+    normX = 0.0;
+    targetOnly = cv::Mat::zeros(gray.size(), CV_8UC1);
 
+    // 空图像保护
+    if (gray.empty())
+        return;
+
+    int imgWidth = gray.cols;
+    if (imgWidth <= 0)
+        return;
+
+    cv::Mat binImg;
+    // OTSU自动阈值分割
+    cv::threshold(gray, binImg, 60, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
+
+    // 形态学去噪
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::morphologyEx(binImg, binImg, cv::MORPH_OPEN, kernel);
+
+    // 查找轮廓
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     cv::findContours(binImg, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    std::vector<std::vector<cv::Point>> validTargets;
-    for (auto& cnt : contours)
-    {
-        double area = cv::contourArea(cnt);
-        if (area > m_minArea && area < m_maxArea)
-        {
-            validTargets.push_back(cnt);
-        }
-    }
-
-    if (validTargets.empty())
-    {
-        m_relX = -1.0;
+    if (contours.empty())
         return;
-    }
 
-    // 取面积最大物体
-    auto maxCnt = *std::max_element(validTargets.begin(), validTargets.end(),
-                                    [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b)
-                                    {
-                                        return cv::contourArea(a) < cv::contourArea(b);
-                                    });
+    // 取面积最大轮廓
+    auto maxContourIt = std::max_element(contours.begin(), contours.end(),
+                                         [](const std::vector<cv::Point>& c1, const std::vector<cv::Point>& c2)
+                                         {
+                                             return cv::contourArea(c1) < cv::contourArea(c2);
+                                         });
+    std::vector<cv::Point> targetContour = *maxContourIt;
 
-    // ========== 生成掩码，只保留目标物体，背景全黑 ==========
-    cv::Mat mask = cv::Mat::zeros(gray.size(), CV_8UC1);
-    cv::drawContours(mask, std::vector<std::vector<cv::Point>>{maxCnt}, 0, cv::Scalar(255), -1);
-    gray.copyTo(targetOnly, mask);
+    // 生成目标掩码图像
+    cv::drawContours(targetOnly, std::vector<std::vector<cv::Point>>{targetContour},
+                     0, cv::Scalar(255), cv::FILLED);
 
-    //矩运算计算物体质心
-    cv::Moments moment = cv::moments(maxCnt);
-    if (moment.m00 < 1e-6)
+    // 计算重心像素坐标
+    cv::Moments moments = cv::moments(targetContour);
+    if (moments.m00 > 1e-6)
     {
-        m_relX = -1.0;
-        return;
+        centerX = moments.m10 / moments.m00;
+        // 归一化：重心X / 图像总宽度，范围 [0, 1]
+        normX = centerX / (double)imgWidth;
     }
-
-    //质心 X 像素坐标 (0.0 ≤ centerX ≤ width - 1)
-    centerX = moment.m10 / moment.m00;
-
 }
 
 void __stdcall HikCamera::imageCallback(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser)
