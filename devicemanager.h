@@ -27,6 +27,7 @@ public:
     Error_code initEleControl();
 
     //采集
+    void photoCapture();
     Error_code lumoCapture(int XNum);
     Error_code larmanCapture();
 

@@ -40,6 +40,11 @@ Error_code DeviceManager::initEleControl()
     return Error_None;
 }
 
+void DeviceManager::photoCapture()
+{
+    m_HikCamera->hikOnceCapture();
+}
+
 Error_code DeviceManager::initCamera()
 {
     // 枚举设备
@@ -102,7 +107,7 @@ Error_code DeviceManager::lumoCapture(int XNum)
 {
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("高光谱 开始采集时间：" + currentTime);
-    // 设置采集 X 行自动停
+    // 采集 X 行
     m_HyperspectralCamera->setAcquireLineCount(XNum);
     bool error = m_HyperspectralCamera->startAcquisition();
     if(!error)
