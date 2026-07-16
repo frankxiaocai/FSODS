@@ -27,11 +27,10 @@ public:
     Error_code initEleControl();
 
     //采集
-    void photoCapture();
+    void HIKCapture();
     Error_code lumoCapture(int XNum);
     Error_code larmanCapture();
 
-    void setType(int type){m_testType = type;}
     void setdelayMsL0(int lt){m_delayMsL0 = lt;}
     void setdelayMsL1(int lt){m_delayMsL1 = lt;}
     void setdelayMsL2(int lt){m_delayMsL2 = lt;}
@@ -71,7 +70,6 @@ private:
     bool m_isSave = false;//标识位
 
     //制动延迟
-    int m_testType = 1;//类型 测试用
     int m_delayMsL1 = 1000;//1号制动延迟 ms
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
@@ -89,12 +87,12 @@ private:
 private slots:
     void slot_onObjectArrived();//物体来了
     void slot_onFrameArrived(const HyperLineBatch &batch);//高光谱信号来了
-    void slot_onHikCaptureArrived(cv::Mat targetOnly);
+    void slot_onHikCaptureArrived(cv::Mat targetOnly);//定位图像
 
 signals:
     void sig_newImage(const QImage& img);//图像流
-    void sig_hikCaptured(const QImage& img); //相机抓图
-    void sig_hikObjectXY(double X,double Y); //物体定位
+    void sig_hikCaptured(const QImage& img); //定位图像
+    void sig_hikObjectXY(double X,double Y); //物体定位位置
     void sig_batchFinished(const HyperLineBatch &batch);  // X 行高光谱
     void sig_plasticType(int type);// 塑料识别结果信号
 };

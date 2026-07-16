@@ -5,25 +5,24 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network SerialBus Concurre
 
 qt_standard_project_setup()
 
-# ==============================
 #  海康 SDK 路径
 # ==============================
 set(HIK_SDK_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/HIKSDK)
-# ==============================
+
 #  高光谱 SDK 路径
 # ==============================
 set(LUMO_SDK_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/Lumo_Sensor_SDK)
-# ==============================
+
 #  高光谱 胡杏算法 依赖onnxruntime 路径
 # ==============================
 set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/ThirdParty/onnxruntime-win-x64-1.10.0)
-# OpenCV配置
+
+# OpenCV 路径
 # ==============================
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/opencv/build)
 find_package(OpenCV REQUIRED)
-# 自动导入头文件、库链接，无需手动写include_directories
 include_directories(${OpenCV_INCLUDE_DIRS})
-# ==============================
+
 
 qt_add_executable(FSODS
     WIN32 MACOSX_BUNDLE
@@ -37,8 +36,7 @@ qt_add_executable(FSODS
     devicemanager.cpp devicemanager.h
 )
 
-# ==============================
-#  头文件路径
+#  头文件包含路径
 # ==============================
 target_include_directories(${PROJECT_NAME}
     PRIVATE
@@ -47,7 +45,6 @@ target_include_directories(${PROJECT_NAME}
     ${ONNXRUNTIME_ROOT}/include
 )
 
-# ==============================
 #  链接库路径
 # ==============================
 target_link_directories(${PROJECT_NAME}
@@ -57,6 +54,8 @@ target_link_directories(${PROJECT_NAME}
     ${ONNXRUNTIME_ROOT}/lib
 )
 
+#  链接库
+# ==============================
 target_link_libraries(FSODS
     PRIVATE
         Qt::Core

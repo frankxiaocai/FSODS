@@ -41,7 +41,7 @@ Error_code DeviceManager::initEleControl()
     return Error_None;
 }
 
-void DeviceManager::photoCapture()
+void DeviceManager::HIKCapture()
 {
     m_HikCamera->hikOnceCapture();
 }
