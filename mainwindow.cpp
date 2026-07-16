@@ -33,6 +33,12 @@ void MainWindow::init()
             );
     });
 
+    connect(m_DeviceManager, &DeviceManager::sig_hikObjectXY, this, [=](double X, double Y)
+            {
+                QString text = QString("normX = %1     normY = %2").arg(X, 0, 'f', 3).arg(Y, 0, 'f', 3);
+                ui->label_objectXY->setText(text);
+            });
+
     //高光谱相关
     connect(m_DeviceManager, &DeviceManager::sig_batchFinished, this, [=](const HyperLineBatch& LineBatch)
             {
@@ -69,7 +75,6 @@ void MainWindow::initUI()
 
     // 日志
     Logger::instance()->setTextEdit(ui->textEdit);
-
 }
 
 void MainWindow::showError(Error_code err)

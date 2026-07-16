@@ -20,6 +20,7 @@ void DeviceManager::init()
     //相机采集信号
     connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
     connect(m_HikCamera, &HikCamera::sig_objectCapture, this, &DeviceManager::slot_onHikCaptureArrived);
+    connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::sig_hikObjectXY);
     // 高光谱采集信号
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
@@ -264,6 +265,28 @@ void DeviceManager::testcount()
 {
     int type = QRandomGenerator::global()->bounded(8);
     emit sig_plasticType(type);
+
+    std::string imgPath = "E:/test/test.jpg";
+
+    // 3. imread读取原图，IMREAD_COLOR读取彩色
+    cv::Mat srcMat = cv::imread(imgPath, cv::IMREAD_COLOR);
+    if (srcMat.empty())
+    {
+        qDebug() << "图像读取失败";
+        return;
+    }
+
+    // 4. 彩色图转为灰度图，存入成员变量 m_grayMat
+    cv::Mat m_grayMat,m_mergeMat,m_grayDrawMat;
+    double X,Y;
+    cv::cvtColor(srcMat, m_grayMat, cv::COLOR_BGR2GRAY);
+    m_HikCamera->objectLocate(m_grayMat,m_mergeMat,X,Y,m_grayDrawMat);
+
+    // 弹窗显示灰度图
+    cv::imshow("Draw Image", m_grayDrawMat);
+    slot_onHikCaptureArrived(m_grayDrawMat);
+
+    emit sig_hikObjectXY(0.212,0.303); //物体定位
 }
 
 void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
@@ -306,6 +329,24 @@ void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
     txtFile.write(txtContent.toUtf8());
     txtFile.close();
 
+}
+
+QImage DeviceManager::Mat2QImage(const cv::Mat &mat)
+{
+    if (mat.empty())
+        return QImage();
+
+    switch (mat.type())
+    {
+    // 单通道灰度图 CV_8UC1
+    case CV_8UC1:
+        return QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_Grayscale8);
+    // 三通道BGR图 CV_8UC3（绘图后的彩色图）
+    case CV_8UC3:
+        return QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_BGR888);
+    default:
+        return QImage();
+    }
 }
 
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
@@ -381,7 +422,7 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
 
 void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
 {
-    QImage imgTarget = QImage(targetOnly.data, targetOnly.cols, targetOnly.rows, targetOnly.step, QImage::Format_Grayscale8).copy();
+    QImage imgTarget = Mat2QImage(targetOnly);
     emit sig_hikCaptured(imgTarget);
 }
 

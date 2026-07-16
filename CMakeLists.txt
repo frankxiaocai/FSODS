@@ -19,7 +19,7 @@ set(LUMO_SDK_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/Lumo_Sensor_SDK)
 set(ONNXRUNTIME_ROOT ${CMAKE_SOURCE_DIR}/ThirdParty/onnxruntime-win-x64-1.10.0)
 # OpenCV配置
 # ==============================
-set(OpenCV_DIR "E:/lanyan/FSODS/ThirdParty/opencv/build")
+set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/ThirdParty/opencv/build)
 find_package(OpenCV REQUIRED)
 # 自动导入头文件、库链接，无需手动写include_directories
 include_directories(${OpenCV_INCLUDE_DIRS})

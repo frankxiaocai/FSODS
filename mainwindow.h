@@ -5,6 +5,7 @@
 #include "./CoreTools/fileio.h"
 #include "./CoreTools/mystruct.h"
 #include "devicemanager.h"
+#include <QPainter>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

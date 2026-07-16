@@ -84,6 +84,7 @@ private:
 
 private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
+    QImage Mat2QImage(const cv::Mat &mat);
 
 private slots:
     void slot_onObjectArrived();//物体来了
@@ -93,6 +94,7 @@ private slots:
 signals:
     void sig_newImage(const QImage& img);//图像流
     void sig_hikCaptured(const QImage& img); //相机抓图
+    void sig_hikObjectXY(double X,double Y); //物体定位
     void sig_batchFinished(const HyperLineBatch &batch);  // X 行高光谱
     void sig_plasticType(int type);// 塑料识别结果信号
 };
