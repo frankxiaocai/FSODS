@@ -25,23 +25,24 @@ public:
     void closeDevice();//关闭设备
 
     void hikOnceCapture(){m_captureFlag = true;}//相机抓图
-    void objectLocate(cv::Mat gray,cv::Mat& targetOnly,double& normX);
+    void objectLocate(cv::Mat gray, cv::Mat& targetOnly, double& normX, double& normY, cv::Mat& drawOut);//物体定位
 
 public:
     void* m_handle = nullptr;//句柄
 
 private:
     static void __stdcall imageCallback(unsigned char* pData,MV_FRAME_OUT_INFO_EX* pFrameInfo,void* pUser);
-    void processImage(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);// 回调转发到成员函数处理图像
+    void processImage(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);// 回调转发到成员函数处理
 
     // 定位相关
     bool m_captureFlag = false; // 抓拍触发标记
-    double m_relX = -1.0;       // 归一化相对 X 坐标
+    double m_normX = -1.0;// 归一化 X 坐标
+    double m_normY = -1.0;
 
 signals:
     void sig_newImage(const QImage& img);//图像流
-    void sig_objectLocation(double relX);
-    void sig_objectCapture(cv::Mat mergeMat);
+    void sig_objectLocation(double X,double Y);
+    void sig_objectCapture(cv::Mat mat);
 };
 
 #endif // HIKCAMERA_H
