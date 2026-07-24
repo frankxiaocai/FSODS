@@ -455,6 +455,19 @@
         <number>0</number>
        </property>
       </widget>
+      <widget class="QPushButton" name="pushButton">
+       <property name="geometry">
+        <rect>
+         <x>550</x>
+         <y>120</y>
+         <width>75</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>手动</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="widget_diankong" native="true">

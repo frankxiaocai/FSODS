@@ -376,3 +376,9 @@ void MainWindow::on_pushButton_saveLog_clicked()
     }
 }
 
+
+void MainWindow::on_pushButton_clicked()
+{
+    m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
+}
+
