@@ -49,8 +49,6 @@ private slots:
     void on_pushButton_mini_clicked();
     void on_pushButton_test_clicked();
 
-
-
     void on_pushButton_clicked();
 
 private:

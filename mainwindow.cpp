@@ -208,6 +208,7 @@ diankongConfigs MainWindow::getDiankongConfigs()
     dkConfigs.delayMsL2 = ui->spinBox_L2k->value();
     dkConfigs.delayMsL3 = ui->spinBox_L3K->value();
     dkConfigs.delayMsL4 = ui->spinBox_L4K->value();
+    dkConfigs.delayMsLarman = ui->spinBox_larmandelay->value();
     dkConfigs.Exposure = ui->spinBox_baoguang->value();
     dkConfigs.FrameRate = ui->spinBox_zhenlv->value();
     dkConfigs.XLines = ui->spinBox_lumo->value();
@@ -221,6 +222,7 @@ void MainWindow::setDiankongConfigs(diankongConfigs dk)
     ui->spinBox_L2k->setValue(dk.delayMsL2);
     ui->spinBox_L3K->setValue(dk.delayMsL3);
     ui->spinBox_L4K->setValue(dk.delayMsL4);
+    ui->spinBox_larmandelay->setValue(dk.delayMsLarman);
     ui->spinBox_baoguang->setValue(dk.Exposure);
     ui->spinBox_zhenlv->setValue(dk.FrameRate);
     ui->spinBox_lumo->setValue(dk.XLines);
@@ -313,6 +315,7 @@ void MainWindow::on_pushButton_apply_clicked()
     m_DeviceManager->setdelayMsL2(ui->spinBox_L2k->value());
     m_DeviceManager->setdelayMsL3(ui->spinBox_L3K->value());
     m_DeviceManager->setdelayMsL4(ui->spinBox_L4K->value());
+    m_DeviceManager->setlarmanDelay(ui->spinBox_larmandelay->value());
     m_DeviceManager->setFrameRate(ui->spinBox_zhenlv->value());
     m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
     m_DeviceManager->setXLines(ui->spinBox_lumo->value());

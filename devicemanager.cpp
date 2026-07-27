@@ -21,11 +21,14 @@ void DeviceManager::init()
     connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
     connect(m_HikCamera, &HikCamera::sig_objectCapture, this, &DeviceManager::slot_onHikCaptureArrived);
     connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::sig_hikObjectXY);
+    connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::slot_hikObjectXY);
     // 高光谱采集信号
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
     //电控
     connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onObjectArrived);
+    //制动
+    connect(this, &DeviceManager::sig_plasticType, this, &DeviceManager::slot_actControl);
 }
 
 Error_code DeviceManager::initEleControl()
@@ -177,7 +180,8 @@ Error_code DeviceManager::larmanCapture()
     }
     QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("拉曼 算法识别结束时间：" + currentTime3);
-    emit sig_plasticType(type);
+
+    lamanActControl(type);
     return Error_None;
 
 }
@@ -194,6 +198,56 @@ void DeviceManager::setFrameRate(double aaa)
     m_FrameRate = aaa;
     //设置相机参数
     m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
+}
+
+void DeviceManager::slot_actControl(int type)
+{
+    //执行制动
+    switch (type)
+    {
+    case 7:
+        QTimer::singleShot(m_delayMsL1, this, [=]() {
+            m_siemensModbusPlc->pushOnOff(1, true);
+
+            QTimer::singleShot(1000, this, [=]() {
+                m_siemensModbusPlc->pushOnOff(1, false);
+            });
+        });
+        break;
+
+    case 5:
+        QTimer::singleShot(m_delayMsL2, this, [=]() {
+            m_siemensModbusPlc->pushOnOff(2, true);
+
+            QTimer::singleShot(1500, this, [=]() {
+                m_siemensModbusPlc->pushOnOff(2, false);
+            });
+        });
+        break;
+
+    case 3:
+        QTimer::singleShot(m_delayMsL3, this, [=]() {
+            m_siemensModbusPlc->turnZuo(1,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnZuo(1,false);
+            });
+        });
+        break;
+
+    case 2:
+        QTimer::singleShot(m_delayMsL3, this, [=]() {
+            m_siemensModbusPlc->turnYou(1,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnYou(1,false);
+            });
+        });
+        break;
+
+    }
+    QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+    LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
 }
 
 void DeviceManager::beltOpen(int num, bool isopen)
@@ -349,6 +403,57 @@ QImage DeviceManager::Mat2QImage(const cv::Mat &mat)
     }
 }
 
+void DeviceManager::lamanActControl(int type)
+{
+    m_siemensModbusPlc->beltOnOff(7,true);
+    //执行制动
+    switch (type)
+    {
+    case 7:
+        QTimer::singleShot(m_delayMsL1 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->pushOnOff(1, true);
+
+            QTimer::singleShot(1000, this, [=]() {
+                m_siemensModbusPlc->pushOnOff(1, false);
+            });
+        });
+        break;
+
+    case 5:
+        QTimer::singleShot(m_delayMsL2 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->pushOnOff(2, true);
+
+            QTimer::singleShot(1500, this, [=]() {
+                m_siemensModbusPlc->pushOnOff(2, false);
+            });
+        });
+        break;
+
+    case 3:
+        QTimer::singleShot(m_delayMsL3 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->turnZuo(1,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnZuo(1,false);
+            });
+        });
+        break;
+
+    case 2:
+        QTimer::singleShot(m_delayMsL3 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->turnYou(1,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnYou(1,false);
+            });
+        });
+        break;
+
+    }
+    QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+    LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
+}
+
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
 {
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
@@ -365,59 +470,22 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
     LOG_INFO("高光谱 算法识别结束&制动指令开始时间：" + currentTime2);
     emit sig_plasticType(type);
 
-    //执行制动
-    switch (type)
+    //保存未知光谱信息
+    if(type == 8 && m_isSave)
     {
-    case 7:
-        QTimer::singleShot(m_delayMsL1, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(1, true);
-
-            QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(1, false);
-            });
-        });
-        break;
-
-    case 5:
-        QTimer::singleShot(m_delayMsL2, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(2, true);
-
-            QTimer::singleShot(1500, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(2, false);
-            });
-        });
-        break;
-
-    case 3:
-        QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnZuo(1,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnZuo(1,false);
-            });
-        });
-        break;
-
-    case 2:
-        QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnYou(1,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnYou(1,false);
-            });
-        });
-        break;
-
-    default:
-        // type不匹配任何值时的处理
-        if(m_isSave)
-        {
-            writeBatch2Raw(batch,type);
-        }
-        break;
+        writeBatch2Raw(batch,type);
     }
-    QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
+
+    //拉曼检测
+    if(type == 8)
+    {
+        //皮带静止
+        m_siemensModbusPlc->beltOnOff(7,false);
+        //延迟2000ms 拉曼采集
+        QTimer::singleShot(2000, this, [=]() {
+            larmanCapture();
+        });
+    }
 }
 
 void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
@@ -426,14 +494,20 @@ void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
     emit sig_hikCaptured(imgTarget);
 }
 
+void DeviceManager::slot_hikObjectXY(double X, double Y)
+{
+    //传输给拉曼运动轴
+}
+
 void DeviceManager::slot_onObjectArrived()
 {
-    //物体到达信号 执行采集
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("光栅 识别到物体" + currentTime);
     //延迟
     QTimer::singleShot(m_delayMsL0, this, [=]() {
+        //高光谱采集
         lumoCapture(m_XLines);
+        //相机采集
+        HIKCapture();
     });
-
 }
