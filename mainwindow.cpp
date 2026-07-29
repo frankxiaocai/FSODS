@@ -282,7 +282,7 @@ void MainWindow::on_pushButton_mini_clicked()
 
 void MainWindow::on_pushButton_test_clicked()
 {
-    m_DeviceManager->testcount();
+    m_DeviceManager->test();
 }
 
 void MainWindow::on_pushButton_initEleControl_clicked()

@@ -332,7 +332,7 @@ void HikCamera::processImage(unsigned char *pData, MV_FRAME_OUT_INFO_EX *pFrameI
                       pFrameInfo->nWidth,
                       pFrameInfo->nHeight,
                       QImage::Format_Grayscale8);
-    emit sig_newImage(currentImg.copy());//帧流
+    //emit sig_newImage(currentImg.copy());//帧流
 
 }
 

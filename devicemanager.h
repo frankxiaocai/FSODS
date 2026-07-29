@@ -20,13 +20,14 @@ public:
     explicit DeviceManager(QObject *parent = nullptr);
     ~DeviceManager() override;
 
+    //初始化
     void init();
     Error_code initCamera();
     Error_code initLumo();
     Error_code initLarman();
     Error_code initEleControl();
 
-    //采集
+    //设备采集
     void HIKCapture();
     Error_code lumoCapture(int XNum);
     Error_code larmanCapture();
@@ -55,9 +56,10 @@ public:
     int getObjTotalCount();
     void clearAllObjectCount();
 
-    void testcount();
+    void test();//测试
 
 private:
+    //设备+算法实例
     HikCamera* m_HikCamera = nullptr;
     HyperspectralCamera* m_HyperspectralCamera = nullptr;
     LarmanModbusTCP* m_larmanModbusTCP = nullptr;
@@ -69,14 +71,14 @@ private:
     double m_Exposure = 10;//曝光时间 ms
     double m_FrameRate = 200;//帧率
     int m_XLines = 40;//采集行数
-    bool m_isSave = false;//标识位
+    bool m_isSave = false;//是否保存标识位
 
     //制动延迟
+    int m_delayMsL0 = 0;//光栅-高光谱延迟 ms
     int m_delayMsL1 = 1000;//1号制动延迟 ms
     int m_delayMsL2 = 2000;
     int m_delayMsL3 = 3000;
     int m_delayMsL4 = 4000;
-    int m_delayMsL0 = 0;//光栅至高光谱延迟 ms
     int m_larmanDelay = 900;//拉曼单独控制逻辑延迟差
 
     //物体计数

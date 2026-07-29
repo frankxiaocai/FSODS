@@ -245,6 +245,26 @@ void DeviceManager::slot_actControl(int type)
         });
         break;
 
+    case 1:
+        QTimer::singleShot(m_delayMsL4, this, [=]() {
+            m_siemensModbusPlc->turnZuo(2,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnZuo(2,false);
+            });
+        });
+        break;
+
+    case 4:
+        QTimer::singleShot(m_delayMsL4, this, [=]() {
+            m_siemensModbusPlc->turnYou(2,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnYou(2,false);
+            });
+        });
+        break;
+
     }
     QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
@@ -315,12 +335,12 @@ void DeviceManager::clearAllObjectCount()
     m_objTotal=0;
 }
 
-void DeviceManager::testcount()
+void DeviceManager::test()
 {
-    int type = QRandomGenerator::global()->bounded(8);
-    emit sig_plasticType(type);
+    // int type = QRandomGenerator::global()->bounded(8);
+    // emit sig_plasticType(type);
 
-    std::string imgPath = "E:/test/test.jpg";
+    std::string imgPath = "E:/test/555.jpeg";
 
     // 3. imread读取原图，IMREAD_COLOR读取彩色
     cv::Mat srcMat = cv::imread(imgPath, cv::IMREAD_COLOR);
@@ -337,10 +357,10 @@ void DeviceManager::testcount()
     m_HikCamera->objectLocate(m_grayMat,m_mergeMat,X,Y,m_grayDrawMat);
 
     // 弹窗显示灰度图
-    cv::imshow("Draw Image", m_grayDrawMat);
+    //cv::imshow("Draw Image", m_grayDrawMat);
     slot_onHikCaptureArrived(m_grayDrawMat);
 
-    emit sig_hikObjectXY(0.212,0.303); //物体定位
+    emit sig_hikObjectXY(X,Y); //物体定位
 }
 
 void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
@@ -445,6 +465,26 @@ void DeviceManager::lamanActControl(int type)
 
             QTimer::singleShot(2000, this, [=]() {
                 m_siemensModbusPlc->turnYou(1,false);
+            });
+        });
+        break;
+
+    case 1:
+        QTimer::singleShot(m_delayMsL4 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->turnZuo(2,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnZuo(2,false);
+            });
+        });
+        break;
+
+    case 4:
+        QTimer::singleShot(m_delayMsL4 - m_larmanDelay, this, [=]() {
+            m_siemensModbusPlc->turnYou(2,true);
+
+            QTimer::singleShot(2000, this, [=]() {
+                m_siemensModbusPlc->turnYou(2,false);
             });
         });
         break;
