@@ -341,7 +341,7 @@ void PlcController::readRegLoop()
         return;
     }
 
-    // 构造读取请求：保持寄存器，地址330，读取1个寄存器
+    // 创建Modbus读取数据单元：离散输入，地址001，1个离散输入点位
     QModbusDataUnit readUnit(QModbusDataUnit::DiscreteInputs, m_readLoopAdress, 1);
     QModbusReply* reply = m_modbus->sendReadRequest(readUnit, 1);
     if (!reply)
