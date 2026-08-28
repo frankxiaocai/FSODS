@@ -34,6 +34,7 @@ qt_add_executable(FSODS
     CoreTools/fileio.cpp CoreTools/fileio.h CoreTools/logger.cpp CoreTools/logger.h CoreTools/mystruct.h CoreTools/RamanPlasticRecognizer.cpp CoreTools/RamanPlasticRecognizer.h
     CoreTools/HSIPlasticRecognizer/HSIProcessor.cpp CoreTools/HSIPlasticRecognizer/HSIProcessor.h CoreTools/HSIPlasticRecognizer/ModelWrapper.cpp CoreTools/HSIPlasticRecognizer/ModelWrapper.h
     devicemanager.cpp devicemanager.h
+    Devices/modbusworker.cpp Devices/modbusworker.h
 )
 
 #  头文件包含路径

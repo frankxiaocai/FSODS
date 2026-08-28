@@ -62,11 +62,9 @@ public:
     int getObjTotalCount();
     void clearAllObjectCount();
 
-    //拉曼运动轴
-    void isLarZhouStart(bool isok);//允许对焦
-
+    //设置拉曼运动轴是否允许对焦
+    void setLarZhouOI(bool isok);
     void test();//测试
-    void larmantest();
 
 private:
     //设备+算法实例
@@ -83,12 +81,12 @@ private:
     int m_XLines = 40;//采集行数
     bool m_isSave = false;//是否保存标识位
 
-    //制动延迟
+    //制动延迟时间
     int m_delayMsL0 = 0;//光栅-高光谱延迟 ms
-    int m_delayMsL1 = 1000;//1号制动延迟 ms
-    int m_delayMsL2 = 2000;
-    int m_delayMsL3 = 3000;
-    int m_delayMsL4 = 4000;
+    int m_delayMsL1 = 1000;//拨杆
+    int m_delayMsL2 = 2000;//推杆
+    int m_delayMsL3 = 3000;//1号万向轮
+    int m_delayMsL4 = 4000;//2号万向轮
     int m_larmanDelay = 900;//拉曼单独控制逻辑延迟差
 
     //物体计数
@@ -96,9 +94,50 @@ private:
     int m_objTotal = 0;//总数
 
     // 执行逻辑优化----20260826 add
-    WheelRealState m_curW1State{WheelRealState::IDLE};//万向轮1 当前状态
-    WheelRealState m_curW2State{WheelRealState::IDLE};
-    int m_lastMaterial;   // 上一次物料类型
+    WheelRealState m_curW1State{WheelRealState::IDLE};//1号万向轮 当前状态
+    WheelRealState m_curW2State{WheelRealState::IDLE};//2号万向轮 当前状态
+    int m_lastMaterial;//上一次物料类型
+
+    //-------------- modbus地址  --------------
+    //写
+    quint16 m_adress_belt1OI = 300;//1号皮带启停 启动：1 停止：0
+    quint16 m_adress_belt2OI = 301;
+    quint16 m_adress_belt3OI = 302;
+    quint16 m_adress_belt4OI = 303;
+    quint16 m_adress_belt5OI = 304;
+    quint16 m_adress_belt6OI = 305;
+    quint16 m_adress_belt7OI = 306;
+    quint16 m_adress_belt8OI = 307;
+    quint16 m_adress_belt9OI = 308;
+
+    quint16 m_adress_belt1Speed = 100;//1号皮带速度
+    quint16 m_adress_belt2Speed = 101;
+    quint16 m_adress_belt3Speed = 102;
+    quint16 m_adress_belt4Speed = 103;
+    quint16 m_adress_belt5Speed = 104;
+    quint16 m_adress_belt6Speed = 105;
+    quint16 m_adress_belt7Speed = 106;
+    quint16 m_adress_belt8Speed = 107;
+    quint16 m_adress_belt9Speed = 108;
+
+    quint16 m_adress_shiftOI = 309;//拨杆 启动：1 停止：0
+    quint16 m_adress_pushOI = 311;//推杆 启动：1 停止：0
+
+    quint16 m_adress_wheel1OI = 315;//1号万向轮启停 启动：1 停止：0
+    quint16 m_adress_wheel2OI = 318;//2号万向轮启停 启动：1 停止：0
+
+    quint16 m_adress_wheel1_left = 313;//1号万向轮左转+回正 左转：1 回正：0
+    quint16 m_adress_wheel2_left = 316;//2号万向轮左转+回正 左转：1 回正：0
+
+    quint16 m_adress_wheel1_right = 314;//1号万向轮右转+回正 右转：1 回正：0
+    quint16 m_adress_wheel2_right = 317;//2号万向轮右转+回正 右转：1 回正：0
+
+    quint16 m_adress_larZhouOI = 3600;//运动轴是否允许对焦 允许：1 不允许：0
+
+    //读
+    quint16 m_adress_grating = 600;// 高光谱光栅地址
+    quint16 m_adress_LarZhou_belt = 3500;//运动轴让皮带停止地址
+    quint16 m_adress_LarZhou_focusOn = 3501;//运动轴聚焦完成地址
 
 private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
@@ -115,7 +154,7 @@ private:
     void execW2IDLE();
 
 private slots:
-    void slot_onObjectArrived();//光栅检测物体到达处理
+    void slot_onObjectArrived();//光栅检测物体到了处理
     void slot_onFrameArrived(const HyperLineBatch &batch);//高光谱采集结果处理
     void slot_onHikCaptureArrived(cv::Mat targetOnly);//相机定位图像处理
     void slot_hikObjectXY(double X,double Y); //相机定位位置处理

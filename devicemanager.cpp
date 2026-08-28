@@ -273,54 +273,72 @@ void DeviceManager::slot_actControl(int type)
         break;
 
     }
-    // QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    // LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
 }
 
 void DeviceManager::slot_actControl_new(int type)
 {
-    // ========== 核心逻辑：同物料不动作，保持原有姿态 ==========
+    // ========== 执行动作方案2逻辑：同物料不动作 ==========
     static bool firstFlag = true;
     if(!firstFlag)
     {
+        // 如果物料类型和上一次相同
         if(type == m_lastMaterial)
         {
-            //"相同物料，不执行任何转向，保持现状";
+            // 直接return退出，不执行动作
             return;
         }
     }
     firstFlag = false;
+
+    // 记录本次的物料类型，作为下一次对比的基准
     m_lastMaterial = type;
 
-    // ========== 物料发生切换，需要执行转向 ==========
+    // 如果物料类型和上一次不同，执行设备动作
     if(type == 3)//1号万向轮 左转
     {
+        //判断如果1号万向轮当前是右转状态，须先右转回正；延迟X1秒后执行左转，更新1号万向轮状态为左转
+        //判断如果1号万向轮当前是归位状态，延迟X1秒后执行左转，更新1号万向轮状态为左转
         execW1SwitchToLeft();
+
     }
     else if(type == 2)//1号万向轮 右转
     {
+        //判断如果1号万向轮当前是左转状态，须先左转回正；延迟X1秒后执行右转，更新万向轮状态为右转
+        //判断如果1号万向轮当前是归位状态，延迟X1秒后执行右转，更新万向轮状态为右转
         execW1SwitchToRight();
+
     }
     else if(type == 5)//2号万向轮 左转
     {
+        //先把1号万向轮复位，防止对二号轮的干扰
+        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
         execW1IDLE();
-        QTimer::singleShot(500, this, [=]() {
+        //延时200ms后，再执行2号万向轮左转；
+        //判断如果2号万向轮当前是右转状态，须先右转回正；延迟X2秒后执行左转，更新2号万向轮状态为左转
+        //判断如果2号万向轮当前是归位状态，延迟X2秒后执行左转，更新2号万向轮状态为左转
+        QTimer::singleShot(200, this, [=]() {
             execW2SwitchToLeft();
         });
     }
     else if(type == 6)//2号万向轮 右转
     {
+        //先把1号万向轮复位，防止对二号轮的干扰
+        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
         execW1IDLE();
-        QTimer::singleShot(500, this, [=]() {
+        //延时200ms后，再执行2号万向轮右转；
+        //判断如果2号万向轮当前是左转状态，须先左转回正；延迟X2秒后执行右转，更新2号万向轮状态为右转
+        //判断如果2号万向轮当前是归位状态，延迟X2秒后执行右转，更新2号万向轮状态为右转
+        QTimer::singleShot(200, this, [=]() {
             execW2SwitchToRight();
         });
-
     }
     else if(type == 4)//推杆
     {
+        // 延时m_delayMsL2毫秒之后执行推杆动作
         QTimer::singleShot(m_delayMsL2, this, [=]() {
+            // PLC控制：2号推杆打开（true=输出开启）
             m_siemensModbusPlc->pushOnOff(2, true);
-
+            // 再延时1500ms，关闭推杆
             QTimer::singleShot(1500, this, [=]() {
                 m_siemensModbusPlc->pushOnOff(2, false);
             });
@@ -328,39 +346,40 @@ void DeviceManager::slot_actControl_new(int type)
     }
     else if(type == 7)//拨杆
     {
+        // 延时m_delayMsL1毫秒执行拨杆动作
         QTimer::singleShot(m_delayMsL1, this, [=]() {
+            // PLC控制：1号拨杆输出打开
             m_siemensModbusPlc->pushOnOff(1, true);
-
+            // 延时1000ms后关闭拨杆
             QTimer::singleShot(1000, this, [=]() {
                 m_siemensModbusPlc->pushOnOff(1, false);
             });
         });
     }
-    else//未知
+    else//未知类型
     {
+        // 1号万向轮回正
+        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
         execW1IDLE();
-        QTimer::singleShot(500, this, [=]() {
-           execW2IDLE();
+        // 延时200ms后，2号万向轮回正
+        //判断2号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新2号轮状态为回正
+        QTimer::singleShot(200, this, [=]() {
+            execW2IDLE();
         });
-
     }
 }
+
 
 void DeviceManager::slot_larZhou_beltStop()
 {
     //皮带静止
     LOG_INFO("接收来自拉曼PLC 皮带停止信号");
-    // m_siemensModbusPlc->beltOnOff(6,false);
-    // m_siemensModbusPlc->beltOnOff(5,false);
-    // m_siemensModbusPlc->beltOnOff(4,false);
-    m_siemensModbusPlc->stopReadLarZhou();
 }
 
 void DeviceManager::slot_larZhou_focusOn()
 {
     LOG_INFO("接收来自拉曼PLC 聚焦完成信号");
-    //结束循环读取线圈
-    m_siemensModbusPlc->stopReadLarZhou();
+
     //larmanCapture();
 
 }
@@ -430,7 +449,7 @@ void DeviceManager::clearAllObjectCount()
     m_objTotal=0;
 }
 
-void DeviceManager::isLarZhouStart(bool isok)
+void DeviceManager::setLarZhouOI(bool isok)
 {
     if(isok)
     {
@@ -470,22 +489,6 @@ void DeviceManager::test()
     emit sig_hikObjectXY(X,Y); //物体定位
 }
 
-void DeviceManager::larmantest()
-{
-    // //拉曼检测
-
-    // //告诉运动轴该物体需要检测
-    // bool aaa = m_siemensModbusPlc->setLarZhouStart();
-    // if(aaa)
-    // {
-    //     LOG_INFO("拉曼PLC 成功告诉运动轴该物体需要检测");
-    // }
-    m_siemensModbusPlc->startReadLarZhou();
-    m_siemensModbusPlc->startReadLarZhou2();
-
-
-
-}
 
 void DeviceManager::writeBatch2Raw(const HyperLineBatch &batch,int type)
 {
@@ -812,16 +815,4 @@ void DeviceManager::slot_onObjectArrived()
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("光栅 识别到物体" + currentTime);
     lumoCapture(m_XLines);
-
-
-    // //20260817 lcp add 拉曼检测
-    // //m_siemensModbusPlc->startReadLarZhou2();
-    // larZhou_beltStartStop(false);
-    // m_siemensModbusPlc->setLarZhouStart();
-
-    // // QTimer::singleShot(m_delayMsL0, this, [=]() {
-
-    // //     larmanCapture();
-    // // });
-
 }

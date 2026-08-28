@@ -30,15 +30,8 @@ void PlcController::init()
     m_readTimer = new QTimer(this);
     m_readTimer->setInterval(m_readInterval);
 
-    m_readTimer_LarZhou = new QTimer(this);
-    m_readTimer_LarZhou2 = new QTimer(this);
-    m_readTimer_LarZhou->setInterval(m_readInterval);
-    m_readTimer_LarZhou2->setInterval(m_readInterval);
-
     // 定时读取槽函数
     connect(m_readTimer, &QTimer::timeout, this, &PlcController::readRegLoop);
-    connect(m_readTimer_LarZhou, &QTimer::timeout, this, &PlcController::readRegLarZhou);
-    connect(m_readTimer_LarZhou2, &QTimer::timeout, this, &PlcController::readRegLarZhou2);
 }
 
 bool PlcController::plcconnect(const QString &ip, quint16 port)
@@ -424,38 +417,6 @@ void PlcController::readRegLoop()
         emit sig_regChanged();
     }
     m_lastRegVal = currVal;
-}
-
-void PlcController::startReadLarZhou()
-{
-    if(m_readTimer_LarZhou->isActive())
-        return;
-
-    m_readTimer_LarZhou->start();
-}
-
-void PlcController::stopReadLarZhou()
-{
-    if(m_readTimer_LarZhou->isActive())
-    {
-        m_readTimer_LarZhou->stop();
-    }
-}
-
-void PlcController::startReadLarZhou2()
-{
-    if(m_readTimer_LarZhou2->isActive())
-        return;
-
-    m_readTimer_LarZhou2->start();
-}
-
-void PlcController::stopReadLarZhou2()
-{
-    if(m_readTimer_LarZhou2->isActive())
-    {
-        m_readTimer_LarZhou2->stop();
-    }
 }
 
 void PlcController::readRegLarZhou()

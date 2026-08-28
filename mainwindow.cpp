@@ -298,7 +298,6 @@ void MainWindow::on_pushButton_mini_clicked()
 void MainWindow::on_pushButton_test_clicked()
 {
     //m_DeviceManager->test();
-    m_DeviceManager->larmantest();
 }
 
 void MainWindow::on_pushButton_initEleControl_clicked()
@@ -404,12 +403,12 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_larzhoukai_clicked()
 {
-    m_DeviceManager->isLarZhouStart(true);
+    m_DeviceManager->setLarZhouOI(true);
 }
 
 
 void MainWindow::on_pushButton_larzhouguan_clicked()
 {
-    m_DeviceManager->isLarZhouStart(false);
+    m_DeviceManager->setLarZhouOI(false);
 }
 

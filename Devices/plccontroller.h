@@ -36,12 +36,6 @@ public:
     void readRegLoop();
 
     //循环读取拉曼运动轴
-    void startReadLarZhou();
-    void stopReadLarZhou();
-
-    void startReadLarZhou2();
-    void stopReadLarZhou2();
-
     void readRegLarZhou();
     void readRegLarZhou2();
 
@@ -64,8 +58,6 @@ private:
     const int m_readInterval = 200;//循环读取周期
 
     // 循环读取拉曼运动轴定时器
-    QTimer* m_readTimer_LarZhou;
-    QTimer* m_readTimer_LarZhou2;
     quint16 m_readLoopAdress_LarZhou = 3500;//运动轴让皮带停止地址
     quint16 m_readLoopAdress_LarZhou2 = 3501;//运动轴聚焦完成地址
     quint16 m_writeLoopAdress_LarZhouStart = 3600;//告诉运动轴需要检测
