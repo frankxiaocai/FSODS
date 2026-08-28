@@ -59,7 +59,7 @@ private:
     int m_pollIndex{0};                     // 当前读到第几个寄存器
 
     // 需要轮询的不连续保持寄存器地址
-    QVector<int> m_pollRegAddrs = {400,401,403};
+    QVector<int> m_pollRegAddrs = {600,3500,3501};
 
     struct UrgentWriteItem{
         int regAddr;

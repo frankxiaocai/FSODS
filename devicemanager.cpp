@@ -12,6 +12,13 @@ DeviceManager::DeviceManager(QObject *parent)
 
 DeviceManager::~DeviceManager()
 {
+    //====线程安全退出顺序：quit → wait → delete对象====
+    m_workerThread->quit();
+    m_workerThread->wait();
+
+    delete m_modbusWorker;
+    delete m_workerThread;
+
     qDebug() << "DeviceManager 析构释放";
 }
 
@@ -26,26 +33,56 @@ void DeviceManager::init()
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
     //光栅
-    connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onObjectArrived);
-    connect(m_siemensModbusPlc, &PlcController::sig_guangshanValue, this, &DeviceManager::sig_guangshanValue);
+    // connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onObjectArrived);
+    // connect(m_siemensModbusPlc, &PlcController::sig_guangshanValue, this, &DeviceManager::sig_guangshanValue);
     //制动
-    connect(this, &DeviceManager::sig_plasticType, this, &DeviceManager::slot_actControl);
+    connect(this, &DeviceManager::sig_plasticType_hsi, this, &DeviceManager::slot_actControl);
+    connect(this, &DeviceManager::sig_plasticType_larman, this, &DeviceManager::slot_lamanActControl);
     //运动轴
-    connect(m_siemensModbusPlc, &PlcController::sig_regBeltStop, this, &DeviceManager::slot_larZhou_beltStop);
-    connect(m_siemensModbusPlc, &PlcController::sig_regFocusON, this, &DeviceManager::slot_larZhou_focusOn);
+    // connect(m_siemensModbusPlc, &PlcController::sig_regBeltStop, this, &DeviceManager::slot_larZhou_beltStop);
+    // connect(m_siemensModbusPlc, &PlcController::sig_regFocusON, this, &DeviceManager::slot_larZhou_focusOn);
 
 }
 
 Error_code DeviceManager::initEleControl()
 {
-    bool error = m_siemensModbusPlc->plcconnect("192.168.0.140",501);
-    if(!error)
-    {
-        LOG_INFO("电控连接失败");
-        return Error_EleControl;
-    }
+    // //====旧版本ModbusPlc类
+    // bool error = m_siemensModbusPlc->plcconnect("192.168.0.140",501);
+    // if(!error)
+    // {
+    //     LOG_INFO("电控连接失败");
+    //     return Error_EleControl;
+    // }
+    // LOG_INFO("电控初始化成功");
+    // m_siemensModbusPlc->startReadReg();
+    // return Error_None;
+
+    //====【改动】new ModbusWorker() 不要传this，禁止父对象====
+    m_modbusWorker = new ModbusWorker();
+    m_workerThread = new QThread;
+    m_modbusWorker->moveToThread(m_workerThread);
+    m_workerThread->start();
+
+    connect(m_modbusWorker,&ModbusWorker::sig_logMsg,this,[](const QString& s){
+        LOG_INFO(s);
+    });
+
+    connect(m_modbusWorker,&ModbusWorker::sig_urgentWriteFinished,this,[](bool ok,QString tag,quint64 sub,quint64 done){
+
+        QString logStr = QString("紧急请求ok？=%1 紧急请求内容=%2 发送请求时间戳:%3 发送完成反馈时间戳:%4")
+                             .arg(ok)
+                             .arg(tag)
+                             .arg(sub)
+                             .arg(done);
+        LOG_INFO(logStr);
+
+    });
+
+    connect(m_modbusWorker, &ModbusWorker::sig_pollReadDone, this, &DeviceManager::slot_pollReadDone);
+
+    m_modbusWorker->plcconnect("192.168.0.140",501);
+    m_modbusWorker->startPoll(200);
     LOG_INFO("电控初始化成功");
-    m_siemensModbusPlc->startReadReg();
     return Error_None;
 }
 
@@ -152,6 +189,7 @@ Error_code DeviceManager::larmanCapture()
             break;
         }
     }
+    LOG_INFO("拉曼 光谱仪采集状态为1");
     //读取波长
     QVector<float> temp_wave;
     temp_error = m_larmanModbusTCP->getWavelengthData(temp_wave);
@@ -169,7 +207,7 @@ Error_code DeviceManager::larmanCapture()
         return temp_error;
     }
     QString currentTime2 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    LOG_INFO("拉曼 结束采集&算法开始识别时间：" + currentTime2);
+    LOG_INFO("拉曼 算法开始识别时间：" + currentTime2);
     int type = 0;
     m_RamanPlasticRecognizer.setTrainDirectory("E:/train_csv");
     //QString trainDir = QDir(QCoreApplication::applicationDirPath()).filePath("train_csv");
@@ -179,7 +217,6 @@ Error_code DeviceManager::larmanCapture()
     RamanErrorCode error = m_RamanPlasticRecognizer.recognition(std_wave,std_originalSpectrum,type);
     if(error!=Error_None_raman)
     {
-        qDebug()<<"拉曼塑料算法识别失败:  "<<error;
         LOG_ERROR("拉曼塑料算法识别失败");
         return Error_Larman;
     }
@@ -187,7 +224,6 @@ Error_code DeviceManager::larmanCapture()
     LOG_INFO("拉曼 算法识别结束时间：" + currentTime3);
 
     emit sig_plasticType_larman(type);
-    lamanActControl(type);
     return Error_None;
 
 }
@@ -221,7 +257,7 @@ void DeviceManager::slot_actControl(int type)
             });
         });
         break;
-//推杆
+        //推杆
     case 2:
         QTimer::singleShot(m_delayMsL2, this, [=]() {
             m_siemensModbusPlc->pushOnOff(2, true);
@@ -231,7 +267,7 @@ void DeviceManager::slot_actControl(int type)
             });
         });
         break;
-//万向轮1 左
+        //万向轮1 左
     case 7:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
             m_siemensModbusPlc->turnZuo(1,true);
@@ -241,7 +277,7 @@ void DeviceManager::slot_actControl(int type)
             });
         });
         break;
-//万向轮1 右
+        //万向轮1 右
     case 4:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
             m_siemensModbusPlc->turnYou(1,true);
@@ -251,7 +287,7 @@ void DeviceManager::slot_actControl(int type)
             });
         });
         break;
-//万向轮2 左
+        //万向轮2 左
     case 5:
         QTimer::singleShot(m_delayMsL4, this, [=]() {
             m_siemensModbusPlc->turnZuo(2,true);
@@ -261,7 +297,7 @@ void DeviceManager::slot_actControl(int type)
             });
         });
         break;
-//万向轮2 右
+        //万向轮2 右
     case 6:
         QTimer::singleShot(m_delayMsL4, this, [=]() {
             m_siemensModbusPlc->turnYou(2,true);
@@ -384,46 +420,189 @@ void DeviceManager::slot_larZhou_focusOn()
 
 }
 
+void DeviceManager::slot_pollReadDone(int regAddr, quint16 val)
+{
+    if(regAddr == m_adress_grating)//光栅轮询
+    {
+        emit sig_guangshanValue(val);
+        // 对比上次值，发生变化则触发信号+日志
+        if ((val != m_lastRegVal)&(val == 1))
+        {
+            slot_onObjectArrived();
+        }
+        m_lastRegVal = val;
+    }
+    else if(regAddr == m_adress_LarZhou_focusOn)//聚焦完成轮询
+    {
+
+        if(val == 1)
+        {
+            //启动拉曼
+        }
+
+    }
+    else
+    {
+
+    }
+}
+
 void DeviceManager::beltOpen(int num, bool isopen)
 {
-    m_siemensModbusPlc->beltOnOff(num,isopen);
+    //m_siemensModbusPlc->beltOnOff(num,isopen);
+    int value = isopen ? 1 : 0;
+    quint16 addr;
+
+    switch (num)
+    {
+    case 1:
+        addr = m_adress_belt1OI;
+        break;
+    case 2:
+        addr = m_adress_belt2OI;
+        break;
+    case 3:
+        addr = m_adress_belt3OI;
+        break;
+    case 4:
+        addr = m_adress_belt4OI;
+        break;
+    case 5:
+        addr = m_adress_belt5OI;
+        break;
+    case 6:
+        addr = m_adress_belt6OI;
+        break;
+    case 7:
+        addr = m_adress_belt7OI;
+        break;
+    case 8:
+        addr = m_adress_belt8OI;
+        break;
+    case 9:
+        addr = m_adress_belt9OI;
+        break;
+    default:
+        qWarning() << "beltOpen: 无效皮带编号 num=" << num;
+        return;
+    }
+
+    emit m_modbusWorker->sigUrgentWrite(addr, value, QString("皮带%1启停").arg(num));
 }
 
 void DeviceManager::beltSpeed(int num, int speed)
 {
-    m_siemensModbusPlc->beltSpeedControl(num,speed);
+    //m_siemensModbusPlc->beltSpeedControl(num,speed);
+    quint16 addr;
+
+    switch (num)
+    {
+    case 1:
+        addr = m_adress_belt1Speed;
+        break;
+    case 2:
+        addr = m_adress_belt2Speed;
+        break;
+    case 3:
+        addr = m_adress_belt3Speed;
+        break;
+    case 4:
+        addr = m_adress_belt4Speed;
+        break;
+    case 5:
+        addr = m_adress_belt5Speed;
+        break;
+    case 6:
+        addr = m_adress_belt6Speed;
+        break;
+    case 7:
+        addr = m_adress_belt7Speed;
+        break;
+    case 8:
+        addr = m_adress_belt8Speed;
+        break;
+    case 9:
+        addr = m_adress_belt9Speed;
+        break;
+    default:
+        qWarning() << "beltOpen: 无效皮带编号 num=" << num;
+        return;
+    }
+
+    emit m_modbusWorker->sigUrgentWrite(addr, speed, QString("皮带%1速度").arg(num));
 }
 
 void DeviceManager::pushControl(int num,bool op)
 {
-    m_siemensModbusPlc->pushOnOff(num,op);
+    //m_siemensModbusPlc->pushOnOff(num,op);
+    int value = op ? 1 : 0;
+    quint16 addr;
+
+    switch (num)
+    {
+    case 1:
+        addr = m_adress_shiftOI;
+        break;
+    case 2:
+        addr = m_adress_pushOI;
+        break;
+    default:
+        qWarning() << "beltOpen: 无效皮带编号 num=" << num;
+        return;
+    }
+
+    emit m_modbusWorker->sigUrgentWrite(addr, value, QString("推拨杆%1启停").arg(num));
 }
 
 void DeviceManager::turnControl(int num,int order)
 {
-    if(order == 0)
+    quint16 addr01 =  m_adress_wheel1OI;
+    if(num == 2)
     {
-        m_siemensModbusPlc->turnOnOff(num,false);
+        addr01 =  m_adress_wheel2OI;
     }
-    else if(order == 1)
+
+    quint16 addr23 =  m_adress_wheel1_left;
+    if(num == 2)
     {
-        m_siemensModbusPlc->turnOnOff(num,true);
+        addr23 =  m_adress_wheel2_left;
     }
-    else if(order == 2)
+
+    quint16 addr45 =  m_adress_wheel1_right;
+    if(num == 2)
     {
-        m_siemensModbusPlc->turnZuo(num,true);
+        addr45 =  m_adress_wheel2_right;
     }
-    else if(order == 3)
+
+    if(order == 0)//万向轮关
     {
-        m_siemensModbusPlc->turnZuo(num,false);
+        //m_siemensModbusPlc->turnOnOff(num,false);
+        emit m_modbusWorker->sigUrgentWrite(addr01, 0, QString("万向轮%1停止").arg(num));
     }
-    else if(order == 4)
+    else if(order == 1)//万向轮开
     {
-        m_siemensModbusPlc->turnYou(num,true);
+        //m_siemensModbusPlc->turnOnOff(num,true);
+        emit m_modbusWorker->sigUrgentWrite(addr01, 1, QString("万向轮%1启动").arg(num));
     }
-    else if(order == 5)
+    else if(order == 2)//万向轮左转
     {
-        m_siemensModbusPlc->turnYou(num,false);
+        //m_siemensModbusPlc->turnZuo(num,true);
+        emit m_modbusWorker->sigUrgentWrite(addr23, 1, QString("万向轮%1左转").arg(num));
+    }
+    else if(order == 3)//万向轮左转回正
+    {
+        //m_siemensModbusPlc->turnZuo(num,false);
+        emit m_modbusWorker->sigUrgentWrite(addr23, 0, QString("万向轮%1左转回正").arg(num));
+    }
+    else if(order == 4)//万向轮右转
+    {
+        //m_siemensModbusPlc->turnYou(num,true);
+        emit m_modbusWorker->sigUrgentWrite(addr45, 1, QString("万向轮%1右转").arg(num));
+    }
+    else if(order == 5)//万向轮右转回正
+    {
+        //m_siemensModbusPlc->turnYou(num,false);
+        emit m_modbusWorker->sigUrgentWrite(addr45, 0, QString("万向轮%1右转回正").arg(num));
     }
 }
 
@@ -453,37 +632,33 @@ void DeviceManager::setLarZhouOI(bool isok)
 {
     if(isok)
     {
-        m_siemensModbusPlc->setLarZhouStart();
+        //m_siemensModbusPlc->setLarZhouStart();
+        emit m_modbusWorker->sigUrgentWrite(m_adress_larZhouOI, 1, "允许对焦");
     }
     else {
-        m_siemensModbusPlc->setLarZhouStop();
+        //m_siemensModbusPlc->setLarZhouStop();
+        emit m_modbusWorker->sigUrgentWrite(m_adress_larZhouOI, 0, "不允许对焦");
     }
 }
 
 
 void DeviceManager::test()
 {
-    // int type = QRandomGenerator::global()->bounded(8);
-    // emit sig_plasticType(type);
 
     std::string imgPath = "E:/test/555.jpeg";
-
-    // 3. imread读取原图，IMREAD_COLOR读取彩色
     cv::Mat srcMat = cv::imread(imgPath, cv::IMREAD_COLOR);
     if (srcMat.empty())
     {
         qDebug() << "图像读取失败";
         return;
     }
-
-    // 4. 彩色图转为灰度图，存入成员变量 m_grayMat
     cv::Mat m_grayMat,m_mergeMat,m_grayDrawMat;
     double X,Y;
     cv::cvtColor(srcMat, m_grayMat, cv::COLOR_BGR2GRAY);
     m_HikCamera->objectLocate(m_grayMat,m_mergeMat,X,Y,m_grayDrawMat);
 
     // 弹窗显示灰度图
-    //cv::imshow("Draw Image", m_grayDrawMat);
+    cv::imshow("Draw Image", m_grayDrawMat);
     slot_onHikCaptureArrived(m_grayDrawMat);
 
     emit sig_hikObjectXY(X,Y); //物体定位
@@ -550,9 +725,8 @@ QImage DeviceManager::Mat2QImage(const cv::Mat &mat)
     }
 }
 
-void DeviceManager::lamanActControl(int type)
+void DeviceManager::slot_lamanActControl(int type)
 {
-    larZhou_beltStartStop(true);
     //执行制动
     switch (type)
     {
@@ -621,19 +795,6 @@ void DeviceManager::lamanActControl(int type)
     LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
 }
 
-void DeviceManager::larZhou_beltStartStop(bool ok)
-{
-    if(ok)
-    {
-        LOG_INFO("拉曼PLC 皮带启动");
-    }
-    else
-    {
-        LOG_INFO("拉曼PLC 皮带停止");
-    }
-
-    m_siemensModbusPlc->beltOnOff(6,ok);
-}
 
 void DeviceManager::execW1SwitchToLeft()
 {
@@ -789,7 +950,7 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
     }
     QString currentTime2 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("高光谱 制动指令开始时间：" + currentTime2);
-    emit sig_plasticType(type);
+    emit sig_plasticType_hsi(type);
 
     //保存光谱信息
     if(m_isSave)

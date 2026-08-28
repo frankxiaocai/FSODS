@@ -4,10 +4,12 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QtConcurrent>
+#include <QThread>
 #include "./Devices/hikcamera.h"
 #include "./Devices/hyperspectralcamera.h"
 #include "./Devices/larmanmodbustcp.h"
 #include "./Devices/plccontroller.h"
+#include "./Devices/modbusworker.h"
 #include "./CoreTools/fileio.h"
 #include "./CoreTools/logger.h"
 #include "./CoreTools/RamanPlasticRecognizer.h"
@@ -56,14 +58,15 @@ public:
     void pushControl(int num,bool op);//推杆 （序号）
     void turnControl(int num,int order);
 
+    //设置拉曼运动轴是否允许对焦
+    void setLarZhouOI(bool isok);
+
     // 物体计数
     void updateObjectCount(int objType);
     int getObjTypeCount(int type);
     int getObjTotalCount();
     void clearAllObjectCount();
 
-    //设置拉曼运动轴是否允许对焦
-    void setLarZhouOI(bool isok);
     void test();//测试
 
 private:
@@ -72,6 +75,9 @@ private:
     HyperspectralCamera* m_HyperspectralCamera = nullptr;
     LarmanModbusTCP* m_larmanModbusTCP = nullptr;
     PlcController* m_siemensModbusPlc = nullptr;
+    ModbusWorker* m_modbusWorker = nullptr;//20260828 add 新版modbus
+    QThread* m_workerThread = nullptr;//20260828 add 新版modbus
+
     HSIProcessor m_HSIClassifier;//HSI塑料分类算法
     RamanPlasticRecognizer m_RamanPlasticRecognizer;//拉曼塑料分类算法
 
@@ -96,7 +102,9 @@ private:
     // 执行逻辑优化----20260826 add
     WheelRealState m_curW1State{WheelRealState::IDLE};//1号万向轮 当前状态
     WheelRealState m_curW2State{WheelRealState::IDLE};//2号万向轮 当前状态
-    int m_lastMaterial;//上一次物料类型
+    int m_lastMaterial = 0;//上一次物料类型
+
+    int m_lastRegVal = 0;//上一次光栅值
 
     //-------------- modbus地址  --------------
     //写
@@ -142,10 +150,8 @@ private:
 private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
     QImage Mat2QImage(const cv::Mat &mat);
-    void lamanActControl(int type);//制动-拉曼单独一套控制逻辑
-    void larZhou_beltStartStop(bool ok);
 
-    // 执行逻辑优化----20260826 add
+    // 高光谱-执行逻辑优化----20260826 add
     void execW1SwitchToLeft();
     void execW1SwitchToRight();
     void execW2SwitchToLeft();
@@ -158,19 +164,23 @@ private slots:
     void slot_onFrameArrived(const HyperLineBatch &batch);//高光谱采集结果处理
     void slot_onHikCaptureArrived(cv::Mat targetOnly);//相机定位图像处理
     void slot_hikObjectXY(double X,double Y); //相机定位位置处理
-    void slot_actControl(int type);//制动
-    void slot_actControl_new(int type);//制动逻辑优化----20260826 add
+    void slot_actControl(int type);//高光谱-制动
+    void slot_actControl_new(int type);//高光谱-制动逻辑优化----20260826 add
+    void slot_lamanActControl(int type);//拉曼-制动（单独一套控制逻辑）
     void slot_larZhou_beltStop();
     void slot_larZhou_focusOn();
+
+    //modbus优化----20260828 add
+    void slot_pollReadDone(int regAddr,quint16 val);//轮询结果
 
 signals:
     void sig_newImage(const QImage& img);//相机图像流
     void sig_hikCaptured(const QImage& img); //相机定位图像
     void sig_hikObjectXY(double X,double Y); //相机定位位置
     void sig_batchFinished(const HyperLineBatch &batch);//高光谱采集结果
-    void sig_plasticType(int type);// 塑料识别结果信号
-    void sig_plasticType_larman(int type);// 塑料识别结果信号
-    void sig_guangshanValue(int aaa);
+    void sig_plasticType_hsi(int type);// 高光谱-塑料识别结果信号
+    void sig_plasticType_larman(int type);// 拉曼-塑料识别结果信号
+    void sig_guangshanValue(int aaa);//光栅值
 };
 
 #endif // DEVICEMANAGER_H

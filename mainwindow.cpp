@@ -57,7 +57,7 @@ void MainWindow::init()
             });
 
     //识别结果显示
-    connect(m_DeviceManager, &DeviceManager::sig_plasticType, this, [=](int type) {
+    connect(m_DeviceManager, &DeviceManager::sig_plasticType_hsi, this, [=](int type) {
         QDateTime currenttime = QDateTime::currentDateTime();
         ui->label_type->setText(currenttime.toString("yyyy-MM-dd HH:mm:ss")+"\n塑料识别结果：" + plasticTypeToString(type));
         //计数
