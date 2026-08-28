@@ -40,6 +40,9 @@
      </property>
     </widget>
     <widget class="QWidget" name="widget_camera" native="true">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>1020</x>
@@ -177,7 +180,33 @@
        </rect>
       </property>
       <property name="text">
-       <string>测试</string>
+       <string>测试-读取轴plc</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_larzhoukai">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>运动轴开</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_larzhouguan">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>110</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>运动轴关</string>
       </property>
      </widget>
     </widget>

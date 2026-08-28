@@ -20,10 +20,10 @@ ModelWrapper::~ModelWrapper() = default;
 #ifdef _WIN32
 std::wstring ModelWrapper::widenPath(const std::string& path)
 {
-    // Keep model path ASCII-only for VS2017 deployment, for example:
-    //     plastic_classifier.onnx
-    //     D:/HSI/plastic_classifier.onnx
-    return std::wstring(path.begin(), path.end());
+	// Keep model path ASCII-only for VS2017 deployment, for example:
+	//     plastic_classifier.onnx
+	//     D:/HSI/plastic_classifier.onnx
+	return std::wstring(path.begin(), path.end());
 }
 #endif
 
@@ -228,8 +228,9 @@ int ModelWrapper::labelFromClassIndex(int classIndex, int classCount) const
 		return sanitizeLabel(classIndex + 1);
 	}
 
-	// Fallback: direct mapping if possible; otherwise Unknown.
-	return sanitizeLabel(classIndex);
+	// Unsupported class count must not be mapped implicitly, because the
+	// probability-column order would be ambiguous.
+	return LABEL_UNKNOWN;
 }
 
 int ModelWrapper::placeholderPredictOne(const Spectrum& snvSpectrum) const
@@ -369,6 +370,12 @@ bool ModelWrapper::predictBatch(const std::vector<float>& flatInput,
 				// Probability/logit/score matrix: [sampleCount, classCount].
 				// This is the preferred format for pixel-level Unknown judgment.
 				const int classCount = static_cast<int>(outCount / static_cast<size_t>(sampleCount));
+				if (classCount != 7 && classCount != 8)
+				{
+					errorMessage = "Unsupported classifier class count. Expected 7 or 8.";
+					return false;
+				}
+
 				for (int i = 0; i < sampleCount; ++i)
 				{
 					const float* row = out + static_cast<size_t>(i) * static_cast<size_t>(classCount);

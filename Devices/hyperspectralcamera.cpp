@@ -124,6 +124,8 @@ void HyperspectralCamera::setAcquireLineCount(int lines) {
 bool HyperspectralCamera::startAcquisition() {
     if (!m_isInited || m_isAcquiring) return false;
 
+    m_batchBuffer_vecChar.clear();
+    m_currentLineCount = 0;
     // 注册回调函数
     int st = SI_RegisterDataCallback(m_handle, dataCallback, this);
     if (st != 0) return false;

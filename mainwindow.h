@@ -51,6 +51,10 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_pushButton_larzhoukai_clicked();
+
+    void on_pushButton_larzhouguan_clicked();
+
 private:
     Ui::MainWindow *ui;
     DeviceManager* m_DeviceManager;

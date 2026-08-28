@@ -88,6 +88,13 @@ public:
      *     7 PET
      *     8 Unknown
      *
+     * Final-label rule:
+     *     Background(0) is excluded from the final competition.
+     *     Labels 1-7 and Unknown(8) are ranked by pixel count.
+     *     Let Top1 and Top2 be the two largest candidates.
+     *     If Top1 is not Unknown and Top1/(Top1+Top2) > 0.55, return Top1;
+     *     otherwise return Unknown(8). Ties involving Unknown favor Unknown.
+     *
      * Return:
      *     Error_None_HSI if the interface runs successfully.
      *     Other error_code_HSI values indicate data/model/inference errors.
@@ -114,9 +121,17 @@ private:
         int backgroundPixels = 0;
         int plasticPixels = 0;
         int unknownPixels = 0;
+        int objectPixels = 0;
+
+        int dominantLabel = 8;
         int dominantPixels = 0;
-        double plasticRatio = 0.0;
+        int secondLabel = 8;
+        int secondPixels = 0;
+        int top2SumPixels = 0;
+
+        // Top1/(Top1+Top2) and Top2/(Top1+Top2).
         double dominantRatio = 0.0;
+        double secondRatio = 0.0;
     };
 
 private:
@@ -149,14 +164,14 @@ private:
     int blockRows_ = 256;
     int blockCols_ = 256;
 
-    // Ratio of known plastic pixels among non-background pixels.
-    // Background pixels are ignored before this ratio is computed.
-    double minPlasticRatio_ = 0.50;
-    double minDominantRatio_ = 0.60;
-    int minPlasticPixels_ = 100;
-
+    // Pixel-level Unknown threshold used by ModelWrapper.
     bool unknownEnabled_ = true;
     float unknownThreshold_ = 0.60f;
 
+    // Whole-sample Top1/Top2 separation threshold.
+    // Python rule: accept known Top1 only when Top1/(Top1+Top2) > 0.55.
+    double top1Top2Threshold_ = 0.55;
+
+    // The ONNX file must be placed in the executable directory with this name.
     std::string defaultModelFileName_ = "plastic_classifier.onnx";
 };

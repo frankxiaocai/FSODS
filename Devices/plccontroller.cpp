@@ -30,8 +30,15 @@ void PlcController::init()
     m_readTimer = new QTimer(this);
     m_readTimer->setInterval(m_readInterval);
 
+    m_readTimer_LarZhou = new QTimer(this);
+    m_readTimer_LarZhou2 = new QTimer(this);
+    m_readTimer_LarZhou->setInterval(m_readInterval);
+    m_readTimer_LarZhou2->setInterval(m_readInterval);
+
     // 定时读取槽函数
     connect(m_readTimer, &QTimer::timeout, this, &PlcController::readRegLoop);
+    connect(m_readTimer_LarZhou, &QTimer::timeout, this, &PlcController::readRegLarZhou);
+    connect(m_readTimer_LarZhou2, &QTimer::timeout, this, &PlcController::readRegLarZhou2);
 }
 
 bool PlcController::plcconnect(const QString &ip, quint16 port)
@@ -208,11 +215,11 @@ bool PlcController::turnOnOff(int num ,bool isok)
     quint16 regAddr;
     if(num == 1)
     {
-        regAddr = 313;
+        regAddr = 315;
     }
     else
     {
-        regAddr = 313;
+        regAddr = 318;
     }
 
     QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
@@ -245,11 +252,11 @@ bool PlcController::turnZuo(int num,bool iszuo)
     quint16 regAddr;
     if(num == 1)
     {
-        regAddr = 314;
+        regAddr = 313;
     }
     else
     {
-        regAddr = 314;
+        regAddr = 316;
     }
 
     QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
@@ -283,11 +290,11 @@ bool PlcController::turnYou(int num,bool isyou)
     quint16 regAddr;
     if(num == 1)
     {
-        regAddr = 315;
+        regAddr = 314;
     }
     else
     {
-        regAddr = 315;
+        regAddr = 317;
     }
 
     QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,regAddr,1);
@@ -303,6 +310,44 @@ bool PlcController::turnYou(int num,bool isyou)
 
     auto *reply = m_modbus->sendWriteRequest(unit, 1);
 
+    if(!reply){return false;}
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok = (reply->error() == QModbusDevice::NoError);
+    delete reply;
+    return ok;
+}
+
+bool PlcController::setLarZhouStart()
+{
+    if(!m_connected){return false;}
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,m_writeLoopAdress_LarZhouStart,1);//HoldingRegisters  //DiscreteInputs
+    unit.setValue(0,1);
+
+    auto *reply = m_modbus->sendWriteRequest(unit, 1);
+    if(!reply){return false;}
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool ok = (reply->error() == QModbusDevice::NoError);
+    delete reply;
+    return ok;
+}
+
+bool PlcController::setLarZhouStop()
+{
+    if(!m_connected){return false;}
+    QModbusDataUnit unit(QModbusDataUnit::HoldingRegisters,m_writeLoopAdress_LarZhouStart,1);//HoldingRegisters  //DiscreteInputs
+    unit.setValue(0,0);
+
+    auto *reply = m_modbus->sendWriteRequest(unit, 1);
     if(!reply){return false;}
 
     while(!reply->isFinished())
@@ -341,8 +386,89 @@ void PlcController::readRegLoop()
         return;
     }
 
-    // 创建Modbus读取数据单元：离散输入，地址001，1个离散输入点位
-    QModbusDataUnit readUnit(QModbusDataUnit::DiscreteInputs, m_readLoopAdress, 1);
+    // 构造读取请求：保持寄存器，地址330，读取1个寄存器
+    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, m_readLoopAdress, 1);//HoldingRegisters  DiscreteInputs
+    QModbusReply* reply = m_modbus->sendReadRequest(readUnit, 1);
+    if (!reply)
+    {
+        qDebug()<<"离散输入读取失败：发送请求为空";
+        return;
+    }
+
+    // 等待通讯完成，增加超时保护500ms
+    QElapsedTimer timer;
+    timer.start();
+    while (!reply->isFinished() && timer.elapsed() < 500)
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool readOk = (reply->error() == QModbusDevice::NoError);
+    if (!readOk)
+    {
+        qDebug()<<QString("读取离散输入通讯错误：%1").arg(reply->errorString());
+        delete reply;
+        return;
+    }
+
+    // 获取当前寄存器数值
+    quint16 currVal = reply->result().value(0);
+    qDebug()<<"光栅当前离散值："<<currVal;
+    emit sig_guangshanValue(currVal);
+
+    delete reply;
+
+    // 对比上次值，发生变化则触发信号+日志
+    if ((currVal != m_lastRegVal)&(currVal == 1))
+    {
+        emit sig_regChanged();
+    }
+    m_lastRegVal = currVal;
+}
+
+void PlcController::startReadLarZhou()
+{
+    if(m_readTimer_LarZhou->isActive())
+        return;
+
+    m_readTimer_LarZhou->start();
+}
+
+void PlcController::stopReadLarZhou()
+{
+    if(m_readTimer_LarZhou->isActive())
+    {
+        m_readTimer_LarZhou->stop();
+    }
+}
+
+void PlcController::startReadLarZhou2()
+{
+    if(m_readTimer_LarZhou2->isActive())
+        return;
+
+    m_readTimer_LarZhou2->start();
+}
+
+void PlcController::stopReadLarZhou2()
+{
+    if(m_readTimer_LarZhou2->isActive())
+    {
+        m_readTimer_LarZhou2->stop();
+    }
+}
+
+void PlcController::readRegLarZhou()
+{
+    // 1. PLC未连接直接返回
+    if (!m_connected)
+    {
+        qDebug()<<"读取寄存器失败：PLC未连接";
+        return;
+    }
+
+    // 构造读取请求
+    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, m_readLoopAdress_LarZhou, 1);//HoldingRegisters  //DiscreteInputs
     QModbusReply* reply = m_modbus->sendReadRequest(readUnit, 1);
     if (!reply)
     {
@@ -370,12 +496,56 @@ void PlcController::readRegLoop()
     quint16 currVal = reply->result().value(0);
     qDebug()<<"当前离散值："<<currVal;
 
-    delete reply;
-
-    // 对比上次值，发生变化则触发信号+日志
-    if ((currVal != m_lastRegVal)&(currVal == 1))
+    if (currVal == 1)
     {
-        emit sig_regChanged();
+        emit sig_regBeltStop();
     }
-    m_lastRegVal = currVal;
+
+    delete reply;
+}
+
+void PlcController::readRegLarZhou2()
+{
+    // 1. PLC未连接直接返回
+    if (!m_connected)
+    {
+        qDebug()<<"读取寄存器失败：PLC未连接";
+        return;
+    }
+
+    // 构造读取请求
+    QModbusDataUnit readUnit(QModbusDataUnit::HoldingRegisters, m_readLoopAdress_LarZhou2, 1);//HoldingRegisters  //DiscreteInputs
+    QModbusReply* reply = m_modbus->sendReadRequest(readUnit, 1);
+    if (!reply)
+    {
+        qDebug()<<"离散输入读取失败：发送请求为空";
+        return;
+    }
+
+    // 等待通讯完成，增加超时保护500ms
+    QElapsedTimer timer;
+    timer.start();
+    while (!reply->isFinished() && timer.elapsed() < 500)
+    {
+        QCoreApplication::processEvents();
+    }
+
+    bool readOk = (reply->error() == QModbusDevice::NoError);
+    if (!readOk)
+    {
+        qDebug()<<QString("读取离散输入通讯错误：%1").arg(reply->errorString());
+        delete reply;
+        return;
+    }
+
+    // 获取当前寄存器数值
+    quint16 currVal = reply->result().value(0);
+    qDebug()<<"当前离散值："<<currVal;
+
+    if (currVal == 1)
+    {
+        emit sig_regFocusON();
+    }
+
+    delete reply;
 }

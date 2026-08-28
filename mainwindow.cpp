@@ -64,6 +64,21 @@ void MainWindow::init()
         updateCountLabel(type);
 
     });
+    //laman
+    connect(m_DeviceManager, &DeviceManager::sig_plasticType_larman, this, [=](int type) {
+        QDateTime currenttime = QDateTime::currentDateTime();
+        ui->label_type->setText(currenttime.toString("yyyy-MM-dd HH:mm:ss")+"\n塑料识别结果：" + plasticTypeToString(type));
+        //计数
+        updateCountLabel(type);
+
+    });
+
+    //光栅当前数值
+    connect(m_DeviceManager, &DeviceManager::sig_guangshanValue, this, [=](int aaa) {
+        QDateTime currenttime = QDateTime::currentDateTime();
+        ui->label_diankong_state->setText(currenttime.toString("yyyy-MM-dd HH:mm:ss")+"光栅实时数值:  "+QString::number(aaa));
+
+    });
 
 }
 
@@ -145,7 +160,7 @@ QString MainWindow::plasticTypeToString(int code)
 {
     switch (code)
     {
-    case 0:  return "未知";
+    case 8:  return "未知";
     case 1:  return "LDPE";
     case 2:  return "HDPE";
     case 3:  return "PP";
@@ -162,7 +177,7 @@ void MainWindow::updateCountLabel(int type)
     m_DeviceManager->updateObjectCount(type);
     switch (type)
     {
-    case 0:
+    case 8:
         ui->label_type00->setText(QString::number(m_DeviceManager->getObjTypeCount(type)));
         break;
 
@@ -282,7 +297,8 @@ void MainWindow::on_pushButton_mini_clicked()
 
 void MainWindow::on_pushButton_test_clicked()
 {
-    m_DeviceManager->test();
+    //m_DeviceManager->test();
+    m_DeviceManager->larmantest();
 }
 
 void MainWindow::on_pushButton_initEleControl_clicked()
@@ -383,5 +399,17 @@ void MainWindow::on_pushButton_saveLog_clicked()
 void MainWindow::on_pushButton_clicked()
 {
     m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
+}
+
+
+void MainWindow::on_pushButton_larzhoukai_clicked()
+{
+    m_DeviceManager->isLarZhouStart(true);
+}
+
+
+void MainWindow::on_pushButton_larzhouguan_clicked()
+{
+    m_DeviceManager->isLarZhouStart(false);
 }
 

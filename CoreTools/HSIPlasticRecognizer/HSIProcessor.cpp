@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstdint>
 #include <sstream>
 #include <stdexcept>
 
@@ -18,126 +19,124 @@ HSIProcessor::HSIProcessor()
 HSIProcessor::~HSIProcessor() = default;
 
 error_code_HSI HSIProcessor::classifyFinalLabel(
-	const HyperLineBatch& batch,
-	int& finalLabel)
+    const HyperLineBatch& batch,
+    int& finalLabel)
 {
-	finalLabel = 8;
+    finalLabel = 8;
 
-	error_code_HSI ec = validateBatch(batch);
-	if (ec != Error_None_HSI)
-	{
-		return ec;
-	}
+    error_code_HSI ec = validateBatch(batch);
+    if (ec != Error_None_HSI)
+    {
+        return ec;
+    }
 
-	ec = ensureModelLoaded(batch.bands);
-	if (ec != Error_None_HSI)
-	{
-		return ec;
-	}
+    ec = ensureModelLoaded(batch.bands);
+    if (ec != Error_None_HSI)
+    {
+        return ec;
+    }
 
-	LabelMatrix labelMatrix;
-	ec = predictPixelLabels(batch, labelMatrix);
-	if (ec != Error_None_HSI)
-	{
-		return ec;
-	}
+    LabelMatrix labelMatrix;
+    ec = predictPixelLabels(batch, labelMatrix);
+    if (ec != Error_None_HSI)
+    {
+        return ec;
+    }
 
-	const VoteResult vote = voteFinalLabel(labelMatrix);
-	finalLabel = vote.finalLabel;
+    const VoteResult vote = voteFinalLabel(labelMatrix);
+    finalLabel = vote.finalLabel;
 
-	return Error_None_HSI;
+    return Error_None_HSI;
 }
 
 error_code_HSI HSIProcessor::ensureModelLoaded(int bands)
 {
-	if (bands <= 0)
-	{
-		return Error_InvalidBands_HSI;
-	}
+    if (bands <= 0)
+    {
+        return Error_InvalidBands_HSI;
+    }
 
-	if (model_ == nullptr)
-	{
-		return Error_ModelNotLoaded_HSI;
-	}
+    if (model_ == nullptr)
+    {
+        return Error_ModelNotLoaded_HSI;
+    }
 
-	try
-	{
-		if (model_->isLoaded())
-		{
-			if (model_->bands() > 0 && model_->bands() != bands)
-			{
-				return Error_ModelBandMismatch_HSI;
-			}
+    try
+    {
+        if (model_->isLoaded())
+        {
+            if (model_->bands() > 0 && model_->bands() != bands)
+            {
+                return Error_ModelBandMismatch_HSI;
+            }
+            return Error_None_HSI;
+        }
 
-			return Error_None_HSI;
-		}
-
-		return loadDefaultModel(bands);
-	}
-	catch (const std::exception&)
-	{
-		return Error_Exception_HSI;
-	}
-	catch (...)
-	{
-		return Error_Exception_HSI;
-	}
+        return loadDefaultModel(bands);
+    }
+    catch (const std::exception&)
+    {
+        return Error_Exception_HSI;
+    }
+    catch (...)
+    {
+        return Error_Exception_HSI;
+    }
 }
 
 error_code_HSI HSIProcessor::loadDefaultModel(int bands)
 {
-	if (bands <= 0)
-	{
-		return Error_InvalidBands_HSI;
-	}
+    if (bands <= 0)
+    {
+        return Error_InvalidBands_HSI;
+    }
 
-	if (model_ == nullptr)
-	{
-		return Error_ModelNotLoaded_HSI;
-	}
+    if (model_ == nullptr)
+    {
+        return Error_ModelNotLoaded_HSI;
+    }
 
-	const std::string modelPath = defaultModelPath();
-	if (modelPath.empty())
-	{
-		return Error_ModelPathEmpty_HSI;
-	}
+    const std::string modelPath = defaultModelPath();
+    if (modelPath.empty())
+    {
+        return Error_ModelPathEmpty_HSI;
+    }
 
-	try
-	{
-		std::string errorMessage;
+    try
+    {
+        std::string errorMessage;
+        if (!model_->loadModel(modelPath, bands, errorMessage))
+        {
+            if (errorMessage.find("band mismatch") != std::string::npos)
+            {
+                return Error_ModelBandMismatch_HSI;
+            }
 
-		if (!model_->loadModel(modelPath, bands, errorMessage))
-		{
-			if (errorMessage.find("band mismatch") != std::string::npos)
-			{
-				return Error_ModelBandMismatch_HSI;
-			}
+            if (errorMessage.find("input type") != std::string::npos ||
+                errorMessage.find("float32") != std::string::npos)
+            {
+                return Error_ModelInputTypeInvalid_HSI;
+            }
 
-			if (errorMessage.find("input type") != std::string::npos ||
-				errorMessage.find("float32") != std::string::npos)
-			{
-				return Error_ModelInputTypeInvalid_HSI;
-			}
+            if (errorMessage.find("at least one input") != std::string::npos ||
+                errorMessage.find("one output") != std::string::npos)
+            {
+                return Error_ModelInputOutputInvalid_HSI;
+            }
 
-			if (errorMessage.find("at least one input") != std::string::npos ||
-				errorMessage.find("one output") != std::string::npos)
-			{
-				return Error_ModelInputOutputInvalid_HSI;
-			}
+            return Error_ModelLoadFailed_HSI;
+        }
 
-			return Error_ModelLoadFailed_HSI;
-		}
-
-		return Error_None_HSI;
-	}
-	catch (const std::exception&)
-	{
-		return Error_Exception_HSI;
-	}
-	catch (...)
-	{
-		return Error_Exception_HSI;
-	}
+        return Error_None_HSI;
+    }
+    catch (const std::exception&)
+    {
+        return Error_Exception_HSI;
+    }
+    catch (...)
+    {
+        return Error_Exception_HSI;
+    }
 }
 
 std::string HSIProcessor::defaultModelPath() const
@@ -164,17 +163,14 @@ error_code_HSI HSIProcessor::validateBatch(const HyperLineBatch& batch) const
     {
         return Error_InvalidWidth_HSI;
     }
-
     if (batch.bands <= 0)
     {
         return Error_InvalidBands_HSI;
     }
-
     if (batch.receivedLines <= 0)
     {
         return Error_InvalidLines_HSI;
     }
-
     if (batch.bytesPerPixel != 2)
     {
         return Error_UnsupportedBytesPerPixel_HSI;
@@ -212,8 +208,8 @@ HSIProcessor::Spectrum HSIProcessor::getSpectrumBIL(
     {
         const size_t byteOffset =
             (static_cast<size_t>(row) * static_cast<size_t>(batch.bands) * static_cast<size_t>(batch.width)
-            + static_cast<size_t>(b) * static_cast<size_t>(batch.width)
-            + static_cast<size_t>(col))
+                + static_cast<size_t>(b) * static_cast<size_t>(batch.width)
+                + static_cast<size_t>(col))
             * static_cast<size_t>(batch.bytesPerPixel);
 
         const uint16_t value =
@@ -241,7 +237,6 @@ HSIProcessor::Spectrum HSIProcessor::snv(const Spectrum& spectrum) const
     {
         sum += static_cast<double>(spectrum[i]);
     }
-
     const double mean = sum / static_cast<double>(n);
 
     double varSum = 0.0;
@@ -254,18 +249,21 @@ HSIProcessor::Spectrum HSIProcessor::snv(const Spectrum& spectrum) const
     double stdValue = 0.0;
     if (n > 1)
     {
+        // Match Python np.std(..., ddof=1).
         stdValue = std::sqrt(varSum / static_cast<double>(n - 1));
     }
 
+    // Match the Python deployment rule: a nearly constant spectrum is not
+    // amplified by dividing by a tiny number.
     if (stdValue <= 1e-12)
     {
-        stdValue = 1e-6;
+        stdValue = 1.0;
     }
 
     for (size_t i = 0; i < n; ++i)
     {
-        result[i] =
-            static_cast<float>((static_cast<double>(spectrum[i]) - mean) / stdValue);
+        result[i] = static_cast<float>(
+            (static_cast<double>(spectrum[i]) - mean) / stdValue);
     }
 
     return result;
@@ -301,7 +299,6 @@ error_code_HSI HSIProcessor::predictPixelLabels(
                 {
                     const Spectrum spectrum = getSpectrumBIL(batch, r, c);
                     const Spectrum spectrumSnv = snv(spectrum);
-
                     blockInput.insert(
                         blockInput.end(),
                         spectrumSnv.begin(),
@@ -316,18 +313,21 @@ error_code_HSI HSIProcessor::predictPixelLabels(
                 return inferenceErrorFromMessage(predError);
             }
 
+            if (blockLabels.size() != static_cast<size_t>(sampleCount))
+            {
+                return Error_InferenceOutputSizeMismatch_HSI;
+            }
+
             int idx = 0;
             for (int r = r0; r < rEnd; ++r)
             {
                 for (int c = c0; c < cEnd; ++c)
                 {
                     int label = blockLabels[static_cast<size_t>(idx++)];
-
                     if (label < 0 || label > 8)
                     {
                         label = 8;
                     }
-
                     labelMatrix[static_cast<size_t>(r)][static_cast<size_t>(c)] = label;
                 }
             }
@@ -341,104 +341,138 @@ HSIProcessor::VoteResult HSIProcessor::voteFinalLabel(
     const LabelMatrix& labelMatrix) const
 {
     VoteResult result;
-    result.finalLabel = 8;
-
     const std::map<int, int> counts = countLabels(labelMatrix);
 
+    // Count pixel categories. Background(0) is excluded from the final
+    // Top1/Top2 competition. Labels 1-7 and Unknown(8) participate.
     for (size_t r = 0; r < labelMatrix.size(); ++r)
     {
         for (size_t c = 0; c < labelMatrix[r].size(); ++c)
         {
             const int label = labelMatrix[r][c];
-            result.totalPixels++;
+            ++result.totalPixels;
 
             if (label == 0)
             {
-                result.backgroundPixels++;
+                ++result.backgroundPixels;
             }
             else if (label >= 1 && label <= 7)
             {
-                result.plasticPixels++;
+                ++result.plasticPixels;
             }
             else
             {
-                result.unknownPixels++;
+                // Label 8 and any illegal label are conservatively handled as Unknown.
+                ++result.unknownPixels;
             }
         }
     }
 
-    // Background pixels are ignored for the final decision.
-    // validPixels means all non-background pixels:
-    //     known plastic pixels (1-7) + Unknown pixels (8).
-    const int validPixels = result.plasticPixels + result.unknownPixels;
+    result.objectPixels = result.plasticPixels + result.unknownPixels;
 
-    if (validPixels <= 0 || result.plasticPixels <= 0)
+    // No non-background candidate -> Unknown.
+    if (result.objectPixels <= 0)
     {
         result.finalLabel = 8;
         return result;
     }
 
-    // Avoid a few noisy pixels triggering a plastic label.
-    if (result.plasticPixels < minPlasticPixels_)
+    struct Candidate
     {
-        result.finalLabel = 8;
-        return result;
-    }
+        int label;
+        int count;
+    };
 
-    // Here plasticRatio is computed only among non-background pixels.
-    // Background pixels do not participate in output or voting.
-    result.plasticRatio =
-        static_cast<double>(result.plasticPixels)
-        / static_cast<double>(validPixels);
+    std::vector<Candidate> candidates;
+    candidates.reserve(8);
 
-    int bestLabel = 1;
-    int bestCount = 0;
-
+    // Labels 1-7 use their exact pixel counts.
     for (int label = 1; label <= 7; ++label)
     {
-        std::map<int, int>::const_iterator it = counts.find(label);
+        const std::map<int, int>::const_iterator it = counts.find(label);
         const int count = (it == counts.end()) ? 0 : it->second;
+        Candidate candidate;
+        candidate.label = label;
+        candidate.count = count;
+        candidates.push_back(candidate);
+    }
 
-        if (count > bestCount)
+    // Unknown is the eighth candidate. result.unknownPixels also includes any
+    // illegal labels, matching the Python deployment rule.
+    Candidate unknownCandidate;
+    unknownCandidate.label = 8;
+    unknownCandidate.count = result.unknownPixels;
+    candidates.push_back(unknownCandidate);
+
+    // Sort by pixel count descending. On equal counts, Unknown wins the tie
+    // conservatively. For ties among known plastics, the smaller label wins.
+    std::sort(
+        candidates.begin(),
+        candidates.end(),
+        [](const Candidate& a, const Candidate& b)
         {
-            bestCount = count;
-            bestLabel = label;
-        }
+            if (a.count != b.count)
+            {
+                return a.count > b.count;
+            }
+            if (a.label == 8 && b.label != 8)
+            {
+                return true;
+            }
+            if (b.label == 8 && a.label != 8)
+            {
+                return false;
+            }
+            return a.label < b.label;
+        });
+
+    result.dominantLabel = candidates[0].label;
+    result.dominantPixels = candidates[0].count;
+    result.secondLabel = candidates[1].label;
+    result.secondPixels = candidates[1].count;
+    result.top2SumPixels = result.dominantPixels + result.secondPixels;
+
+    if (result.top2SumPixels > 0)
+    {
+        result.dominantRatio =
+            static_cast<double>(result.dominantPixels)
+            / static_cast<double>(result.top2SumPixels);
+        result.secondRatio =
+            static_cast<double>(result.secondPixels)
+            / static_cast<double>(result.top2SumPixels);
     }
 
-    result.dominantPixels = bestCount;
-    result.dominantRatio =
-        static_cast<double>(bestCount)
-        / static_cast<double>(result.plasticPixels);
-
-    if (result.plasticRatio < minPlasticRatio_)
+    // Final rule aligned with the Python version:
+    // 1) If Top1 is Unknown -> Unknown.
+    // 2) Otherwise require Top1/(Top1+Top2) > 0.55.
+    //    Equality at 0.55 is still Unknown because Python uses <= threshold
+    //    for rejection and > threshold for acceptance.
+    if (result.dominantLabel == 8)
     {
         result.finalLabel = 8;
-        return result;
     }
-
-    if (result.dominantRatio < minDominantRatio_)
+    else if (result.dominantRatio <= top1Top2Threshold_)
     {
         result.finalLabel = 8;
-        return result;
+    }
+    else
+    {
+        result.finalLabel = result.dominantLabel;
     }
 
-    result.finalLabel = bestLabel;
     return result;
 }
 
 std::map<int, int> HSIProcessor::countLabels(const LabelMatrix& labels)
 {
     std::map<int, int> counts;
-
     for (size_t r = 0; r < labels.size(); ++r)
     {
         for (size_t c = 0; c < labels[r].size(); ++c)
         {
-            counts[labels[r][c]]++;
+            ++counts[labels[r][c]];
         }
     }
-
     return counts;
 }
 
@@ -449,28 +483,23 @@ error_code_HSI HSIProcessor::inferenceErrorFromMessage(
     {
         return Error_InferenceInputSizeMismatch_HSI;
     }
-
     if (message.find("empty") != std::string::npos ||
         message.find("not a tensor") != std::string::npos)
     {
         return Error_InferenceOutputEmpty_HSI;
     }
-
     if (message.find("Unsupported") != std::string::npos &&
         message.find("type") != std::string::npos)
     {
         return Error_InferenceOutputTypeUnsupported_HSI;
     }
-
     if (message.find("shape") != std::string::npos)
     {
         return Error_InferenceOutputShapeUnsupported_HSI;
     }
-
     if (message.find("smaller than sample count") != std::string::npos)
     {
         return Error_InferenceOutputSizeMismatch_HSI;
     }
-
     return Error_InferenceRunFailed_HSI;
 }

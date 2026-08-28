@@ -27,13 +27,29 @@ public:
     bool turnZuo(int num,bool iszuo);//万向轮左转+回正
     bool turnYou(int num,bool isyou);//万向轮右转+回正
 
+    bool setLarZhouStart();//物体需要拉曼检测
+    bool setLarZhouStop();//物体停止拉曼检测
+
     //循环读取光栅
     void startReadReg();
     void stopReadReg();
     void readRegLoop();
 
+    //循环读取拉曼运动轴
+    void startReadLarZhou();
+    void stopReadLarZhou();
+
+    void startReadLarZhou2();
+    void stopReadLarZhou2();
+
+    void readRegLarZhou();
+    void readRegLarZhou2();
+
 signals:
     void sig_regChanged();//光栅
+    void sig_guangshanValue(int guang);
+    void sig_regBeltStop();//运动轴让皮带停止
+    void sig_regFocusON();//运动轴聚焦完成
 
 private:
     QModbusTcpClient *m_modbus = nullptr;
@@ -41,11 +57,18 @@ private:
     QString m_ip;
     quint16 m_port = 502;
 
-    // 循环读取定时器
+    // 循环读取光栅定时器
     QTimer* m_readTimer;
-    quint16 m_readLoopAdress = 001;
+    quint16 m_readLoopAdress = 600;
     quint16 m_lastRegVal = 0;
     const int m_readInterval = 200;//循环读取周期
+
+    // 循环读取拉曼运动轴定时器
+    QTimer* m_readTimer_LarZhou;
+    QTimer* m_readTimer_LarZhou2;
+    quint16 m_readLoopAdress_LarZhou = 3500;//运动轴让皮带停止地址
+    quint16 m_readLoopAdress_LarZhou2 = 3501;//运动轴聚焦完成地址
+    quint16 m_writeLoopAdress_LarZhouStart = 3600;//告诉运动轴需要检测
 };
 
 #endif // PLCCONTROLLER_H

@@ -12,7 +12,13 @@
 #include "./CoreTools/logger.h"
 #include "./CoreTools/RamanPlasticRecognizer.h"
 #include "./CoreTools/HSIPlasticRecognizer/HSIProcessor.h"
-
+// 万向轮物理实际状态
+enum class WheelRealState
+{
+    IDLE,       // 回正中位
+    LEFT,       // 左转到位
+    RIGHT       // 右转到位
+};
 class DeviceManager : public QObject
 {
     Q_OBJECT
@@ -56,7 +62,11 @@ public:
     int getObjTotalCount();
     void clearAllObjectCount();
 
+    //拉曼运动轴
+    void isLarZhouStart(bool isok);//允许对焦
+
     void test();//测试
+    void larmantest();
 
 private:
     //设备+算法实例
@@ -82,13 +92,27 @@ private:
     int m_larmanDelay = 900;//拉曼单独控制逻辑延迟差
 
     //物体计数
-    int m_objCount[8] = {0}; // 1~7种塑料 + 未知
+    int m_objCount[9] = {0}; // 1~7种塑料 + 未知
     int m_objTotal = 0;//总数
+
+    // 执行逻辑优化----20260826 add
+    WheelRealState m_curW1State{WheelRealState::IDLE};//万向轮1 当前状态
+    WheelRealState m_curW2State{WheelRealState::IDLE};
+    int m_lastMaterial;   // 上一次物料类型
 
 private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
     QImage Mat2QImage(const cv::Mat &mat);
     void lamanActControl(int type);//制动-拉曼单独一套控制逻辑
+    void larZhou_beltStartStop(bool ok);
+
+    // 执行逻辑优化----20260826 add
+    void execW1SwitchToLeft();
+    void execW1SwitchToRight();
+    void execW2SwitchToLeft();
+    void execW2SwitchToRight();
+    void execW1IDLE();
+    void execW2IDLE();
 
 private slots:
     void slot_onObjectArrived();//光栅检测物体到达处理
@@ -96,6 +120,9 @@ private slots:
     void slot_onHikCaptureArrived(cv::Mat targetOnly);//相机定位图像处理
     void slot_hikObjectXY(double X,double Y); //相机定位位置处理
     void slot_actControl(int type);//制动
+    void slot_actControl_new(int type);//制动逻辑优化----20260826 add
+    void slot_larZhou_beltStop();
+    void slot_larZhou_focusOn();
 
 signals:
     void sig_newImage(const QImage& img);//相机图像流
@@ -103,6 +130,8 @@ signals:
     void sig_hikObjectXY(double X,double Y); //相机定位位置
     void sig_batchFinished(const HyperLineBatch &batch);//高光谱采集结果
     void sig_plasticType(int type);// 塑料识别结果信号
+    void sig_plasticType_larman(int type);// 塑料识别结果信号
+    void sig_guangshanValue(int aaa);
 };
 
 #endif // DEVICEMANAGER_H

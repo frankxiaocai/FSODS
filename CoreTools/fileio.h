@@ -18,6 +18,8 @@ public:
     bool writeDianKongConfig(const diankongConfigs& cfg);
     bool readDianKongConfig(diankongConfigs& cfg);
 
+    // 追加写入数据
+   int saveDataGroupToCsv(const QString &timeStr, int channel, int quality, const QVector<float> &waveLength, const QVector<float> &originalSpectrum, const QVector<float> &analyzeSpectrum);
 private:
     FileIO();
     ~FileIO();
@@ -25,6 +27,8 @@ private:
 
     // 配置文件路径
     const QString m_configPath = "config.ini";
+    // 光谱存储文件路径
+    QString m_csvFilePath = QString("E/larmanOut/%1_spectualdata.csv").arg(QDate::currentDate().toString("yyyyMMdd"));
 };
 
 #endif // FILEIO_H
