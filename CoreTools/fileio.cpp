@@ -28,6 +28,8 @@ bool FileIO::writeDianKongConfig(const diankongConfigs &cfg)
     setting.setValue("delayMsL3", cfg.delayMsL3);
     setting.setValue("delayMsL4", cfg.delayMsL4);
     setting.setValue("delayMsLarman", cfg.delayMsLarman);
+    setting.setValue("delayMs_afterW1", cfg.delayMs_afterW1);
+    setting.setValue("delayMs_afterW2", cfg.delayMs_afterW2);
 
     setting.setValue("Exposure", cfg.Exposure);
     setting.setValue("FrameRate", cfg.FrameRate);
@@ -60,6 +62,10 @@ bool FileIO::readDianKongConfig(diankongConfigs& cfg)
         cfg.delayMsL4 = setting.value("delayMsL4").toInt();
     if (setting.contains("delayMsLarman"))
         cfg.delayMsLarman = setting.value("delayMsLarman").toInt();
+    if (setting.contains("delayMs_afterW1"))
+        cfg.delayMs_afterW1 = setting.value("delayMs_afterW1").toInt();
+    if (setting.contains("delayMs_afterW2"))
+        cfg.delayMs_afterW2 = setting.value("delayMs_afterW2").toInt();
 
     if (setting.contains("Exposure"))
         cfg.Exposure = setting.value("Exposure").toDouble();

@@ -250,60 +250,72 @@ void DeviceManager::slot_actControl(int type)
     //拨杆
     case 3:
         QTimer::singleShot(m_delayMsL1, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(1, true);
+            //m_siemensModbusPlc->pushOnOff(1, true);
+            pushControl(1, true);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(1, false);
+                //m_siemensModbusPlc->pushOnOff(1, false);
+                pushControl(1, false);
             });
         });
         break;
         //推杆
     case 2:
         QTimer::singleShot(m_delayMsL2, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(2, true);
+            //m_siemensModbusPlc->pushOnOff(2, true);
+            pushControl(2, true);
 
             QTimer::singleShot(1500, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(2, false);
+                //m_siemensModbusPlc->pushOnOff(2, false);
+                pushControl(2, false);
             });
         });
         break;
         //万向轮1 左
     case 7:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnZuo(1,true);
+            //m_siemensModbusPlc->turnZuo(1,true);
+            turnControl(1,2);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->turnZuo(1,false);
+                //m_siemensModbusPlc->turnZuo(1,false);
+                turnControl(1,3);
             });
         });
         break;
         //万向轮1 右
     case 4:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnYou(1,true);
+            //m_siemensModbusPlc->turnYou(1,true);
+            turnControl(1,4);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->turnYou(1,false);
+                //m_siemensModbusPlc->turnYou(1,false);
+                turnControl(1,5);
             });
         });
         break;
         //万向轮2 左
     case 5:
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            m_siemensModbusPlc->turnZuo(2,true);
+            //m_siemensModbusPlc->turnZuo(2,true);
+            turnControl(2,2);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->turnZuo(2,false);
+                //m_siemensModbusPlc->turnZuo(2,false);
+                turnControl(2,3);
             });
         });
         break;
         //万向轮2 右
     case 6:
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            m_siemensModbusPlc->turnYou(2,true);
+            //m_siemensModbusPlc->turnYou(2,true);
+            turnControl(2,4);
 
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->turnYou(2,false);
+                //m_siemensModbusPlc->turnYou(2,false);
+                turnControl(2,5);
             });
         });
         break;
@@ -346,9 +358,12 @@ void DeviceManager::slot_actControl_new(int type)
     }
     else if(type == 5)//2号万向轮 左转
     {
-        //先把1号万向轮复位，防止对二号轮的干扰
+        //延迟XX秒（实测）等上一物体经过1号万向轮后，把1号万向轮复位，防止对二号轮的干扰
         //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        execW1IDLE();
+        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
+            execW1IDLE();
+        });
+
         //延时200ms后，再执行2号万向轮左转；
         //判断如果2号万向轮当前是右转状态，须先右转回正；延迟X2秒后执行左转，更新2号万向轮状态为左转
         //判断如果2号万向轮当前是归位状态，延迟X2秒后执行左转，更新2号万向轮状态为左转
@@ -358,9 +373,11 @@ void DeviceManager::slot_actControl_new(int type)
     }
     else if(type == 6)//2号万向轮 右转
     {
-        //先把1号万向轮复位，防止对二号轮的干扰
+        //延迟XX秒（实测）等上一物体经过1号万向轮后，把1号万向轮复位，防止对二号轮的干扰
         //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        execW1IDLE();
+        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
+            execW1IDLE();
+        });
         //延时200ms后，再执行2号万向轮右转；
         //判断如果2号万向轮当前是左转状态，须先左转回正；延迟X2秒后执行右转，更新2号万向轮状态为右转
         //判断如果2号万向轮当前是归位状态，延迟X2秒后执行右转，更新2号万向轮状态为右转
@@ -373,10 +390,12 @@ void DeviceManager::slot_actControl_new(int type)
         // 延时m_delayMsL2毫秒之后执行推杆动作
         QTimer::singleShot(m_delayMsL2, this, [=]() {
             // PLC控制：2号推杆打开（true=输出开启）
-            m_siemensModbusPlc->pushOnOff(2, true);
+            //m_siemensModbusPlc->pushOnOff(2, true);
+            pushControl(2, true);
             // 再延时1500ms，关闭推杆
             QTimer::singleShot(1500, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(2, false);
+                //m_siemensModbusPlc->pushOnOff(2, false);
+                pushControl(2, false);
             });
         });
     }
@@ -385,21 +404,25 @@ void DeviceManager::slot_actControl_new(int type)
         // 延时m_delayMsL1毫秒执行拨杆动作
         QTimer::singleShot(m_delayMsL1, this, [=]() {
             // PLC控制：1号拨杆输出打开
-            m_siemensModbusPlc->pushOnOff(1, true);
+            //m_siemensModbusPlc->pushOnOff(1, true);
+            pushControl(1, true);
             // 延时1000ms后关闭拨杆
             QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(1, false);
+                //m_siemensModbusPlc->pushOnOff(1, false);
+                pushControl(1, false);
             });
         });
     }
     else//未知类型
     {
-        // 1号万向轮回正
+        // 延迟XX秒（实测）等上一物体经过1号万向轮后，1号万向轮回正
         //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        execW1IDLE();
-        // 延时200ms后，2号万向轮回正
+        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
+            execW1IDLE();
+        });
+        // 延迟XX秒（实测）等上一物体经过1号万向轮后，2号万向轮回正
         //判断2号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新2号轮状态为回正
-        QTimer::singleShot(200, this, [=]() {
+        QTimer::singleShot(m_delayMs_afterW2, this, [=]() {
             execW2IDLE();
         });
     }
@@ -727,72 +750,7 @@ QImage DeviceManager::Mat2QImage(const cv::Mat &mat)
 
 void DeviceManager::slot_lamanActControl(int type)
 {
-    //执行制动
-    switch (type)
-    {
-    case 7:
-        QTimer::singleShot(m_delayMsL1 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(1, true);
 
-            QTimer::singleShot(1000, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(1, false);
-            });
-        });
-        break;
-
-    case 5:
-        QTimer::singleShot(m_delayMsL2 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->pushOnOff(2, true);
-
-            QTimer::singleShot(1500, this, [=]() {
-                m_siemensModbusPlc->pushOnOff(2, false);
-            });
-        });
-        break;
-
-    case 3:
-        QTimer::singleShot(m_delayMsL3 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->turnZuo(1,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnZuo(1,false);
-            });
-        });
-        break;
-
-    case 2:
-        QTimer::singleShot(m_delayMsL3 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->turnYou(1,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnYou(1,false);
-            });
-        });
-        break;
-
-    case 1:
-        QTimer::singleShot(m_delayMsL4 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->turnZuo(2,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnZuo(2,false);
-            });
-        });
-        break;
-
-    case 4:
-        QTimer::singleShot(m_delayMsL4 - m_larmanDelay, this, [=]() {
-            m_siemensModbusPlc->turnYou(2,true);
-
-            QTimer::singleShot(2000, this, [=]() {
-                m_siemensModbusPlc->turnYou(2,false);
-            });
-        });
-        break;
-
-    }
-    QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    LOG_INFO("电控 制动指令结束时间 ：" + currentTime3);
 }
 
 
@@ -802,11 +760,13 @@ void DeviceManager::execW1SwitchToLeft()
     if(m_curW1State == WheelRealState::RIGHT)
     {
         // 当前是右转，先执行右转回正";
-        m_siemensModbusPlc->turnYou(1,false);
+        //m_siemensModbusPlc->turnYou(1,false);
+        turnControl(1,5);
         m_curW1State = WheelRealState::IDLE;
         // 再执行左转
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnZuo(1,true);
+            //m_siemensModbusPlc->turnZuo(1,true);
+            turnControl(1,2);
         });
 
         m_curW1State = WheelRealState::LEFT;
@@ -814,7 +774,8 @@ void DeviceManager::execW1SwitchToLeft()
 
     // 当前已经IDLE，直接左转
     QTimer::singleShot(m_delayMsL3, this, [=]() {
-        m_siemensModbusPlc->turnZuo(1,true);
+        //m_siemensModbusPlc->turnZuo(1,true);
+        turnControl(1,2);
     });
     m_curW1State = WheelRealState::LEFT;
 
@@ -826,11 +787,13 @@ void DeviceManager::execW1SwitchToRight()
     if(m_curW1State == WheelRealState::LEFT)
     {
         // 左转回正
-        m_siemensModbusPlc->turnZuo(1,false);
+        //m_siemensModbusPlc->turnZuo(1,false);
+        turnControl(1,3);
         m_curW1State = WheelRealState::IDLE;
         // 再执行右转
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            m_siemensModbusPlc->turnYou(1,true);
+            //m_siemensModbusPlc->turnYou(1,true);
+            turnControl(1,4);
 
         });
         m_curW1State = WheelRealState::RIGHT;
@@ -838,7 +801,8 @@ void DeviceManager::execW1SwitchToRight()
 
     // 当前已经IDLE，直接右转
     QTimer::singleShot(m_delayMsL3, this, [=]() {
-        m_siemensModbusPlc->turnYou(1,true);
+        //m_siemensModbusPlc->turnYou(1,true);
+        turnControl(1,4);
 
     });
     m_curW1State = WheelRealState::RIGHT;
@@ -852,11 +816,13 @@ void DeviceManager::execW2SwitchToLeft()
     if(m_curW2State == WheelRealState::RIGHT)
     {
         // 当前是右转，先执行右转回正";
-        m_siemensModbusPlc->turnYou(2,false);
+        //m_siemensModbusPlc->turnYou(2,false);
+        turnControl(2,5);
         m_curW2State = WheelRealState::IDLE;
         // 再执行左转
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            m_siemensModbusPlc->turnZuo(2,true);
+            //m_siemensModbusPlc->turnZuo(2,true);
+            turnControl(2,2);
 
         });
 
@@ -865,7 +831,8 @@ void DeviceManager::execW2SwitchToLeft()
 
     // 当前已经IDLE，直接左转
     QTimer::singleShot(m_delayMsL4, this, [=]() {
-        m_siemensModbusPlc->turnZuo(2,true);
+        //m_siemensModbusPlc->turnZuo(2,true);
+        turnControl(2,2);
 
     });
 
@@ -879,11 +846,13 @@ void DeviceManager::execW2SwitchToRight()
     if(m_curW2State == WheelRealState::LEFT)
     {
         // 左转回正
-        m_siemensModbusPlc->turnZuo(2,false);
+        //m_siemensModbusPlc->turnZuo(2,false);
+        turnControl(2,3);
         m_curW2State = WheelRealState::IDLE;
         // 再执行右转
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            m_siemensModbusPlc->turnYou(2,true);
+            //m_siemensModbusPlc->turnYou(2,true);
+            turnControl(2,4);
 
         });
 
@@ -892,7 +861,8 @@ void DeviceManager::execW2SwitchToRight()
 
     // 当前已经IDLE，直接右转
     QTimer::singleShot(m_delayMsL4, this, [=]() {
-        m_siemensModbusPlc->turnYou(2,true);
+        //m_siemensModbusPlc->turnYou(2,true);
+        turnControl(2,4);
 
     });
 
@@ -906,13 +876,15 @@ void DeviceManager::execW1IDLE()
     if(m_curW1State == WheelRealState::LEFT)
     {
         // 左转回正
-        m_siemensModbusPlc->turnZuo(1,false);
+        //m_siemensModbusPlc->turnZuo(1,false);
+        turnControl(1,3);
     }
 
     if(m_curW1State == WheelRealState::RIGHT)
     {
         // 左转回正
-        m_siemensModbusPlc->turnYou(1,false);
+        //m_siemensModbusPlc->turnYou(1,false);
+        turnControl(1,5);
     }
 
     m_curW1State = WheelRealState::IDLE;
@@ -924,13 +896,15 @@ void DeviceManager::execW2IDLE()
     if(m_curW2State == WheelRealState::LEFT)
     {
         // 左转回正
-        m_siemensModbusPlc->turnZuo(2,false);
+        //m_siemensModbusPlc->turnZuo(2,false);
+        turnControl(2,3);
     }
 
     if(m_curW2State == WheelRealState::RIGHT)
     {
-        // 左转回正
-        m_siemensModbusPlc->turnYou(2,false);
+        // 右转回正
+        //m_siemensModbusPlc->turnYou(2,false);
+        turnControl(2,5);
     }
 
     m_curW2State = WheelRealState::IDLE;

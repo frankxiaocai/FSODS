@@ -50,10 +50,12 @@ struct diankongConfigs
     int delayMsL2 = 5500;
     int delayMsL3 = 6500;
     int delayMsL4 = 7500;
-    int delayMsLarman = 1000;
+    int delayMsLarman = 1000;//偏移
     double Exposure = 10;//曝光时间 ms
     double FrameRate = 200;//帧率
     int XLines = 40;//采集行数
+    int delayMs_afterW1 = 6500;
+    int delayMs_afterW2 = 6500;
 };
 
 // 错误码

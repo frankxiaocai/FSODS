@@ -90,6 +90,9 @@ void MainWindow::initUI()
 
     // 日志
     Logger::instance()->setTextEdit(ui->textEdit);
+
+    //隐藏相机相关
+    ui->widget_camera->setHidden(true);
 }
 
 void MainWindow::showError(Error_code err)
@@ -334,6 +337,8 @@ void MainWindow::on_pushButton_apply_clicked()
     m_DeviceManager->setFrameRate(ui->spinBox_zhenlv->value());
     m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
     m_DeviceManager->setXLines(ui->spinBox_lumo->value());
+    m_DeviceManager->setdelayMs_afterW1(ui->spinBox_afterw1->value());
+    m_DeviceManager->setdelayMs_afterW2(ui->spinBox_afterw2->value());
 
     diankongConfigs dkc = getDiankongConfigs();
     FileIO::instance()->writeDianKongConfig(dkc);

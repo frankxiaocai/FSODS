@@ -47,6 +47,8 @@ public:
     void setdelayMsL3(int lt){m_delayMsL3 = lt;}
     void setdelayMsL4(int lt){m_delayMsL4 = lt;}
     void setlarmanDelay(int lt){m_larmanDelay = lt;}
+    void setdelayMs_afterW1(int lt){m_delayMs_afterW1 = lt;}
+    void setdelayMs_afterW2(int lt){m_delayMs_afterW2 = lt;}
     void setIsSave(bool aaa){m_isSave = aaa;}
     void setExposure(double aaa);
     void setFrameRate(double aaa);
@@ -94,6 +96,8 @@ private:
     int m_delayMsL3 = 3000;//1号万向轮
     int m_delayMsL4 = 4000;//2号万向轮
     int m_larmanDelay = 900;//拉曼单独控制逻辑延迟差
+    int m_delayMs_afterW1 = 3000;//过1号万向轮
+    int m_delayMs_afterW2 = 4000;//过2号万向轮
 
     //物体计数
     int m_objCount[9] = {0}; // 1~7种塑料 + 未知
