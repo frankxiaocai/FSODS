@@ -227,6 +227,8 @@ diankongConfigs MainWindow::getDiankongConfigs()
     dkConfigs.delayMsL3 = ui->spinBox_L3K->value();
     dkConfigs.delayMsL4 = ui->spinBox_L4K->value();
     dkConfigs.delayMsLarman = ui->spinBox_larmandelay->value();
+    dkConfigs.delayMs_afterW1 = ui->spinBox_afterw1->value();
+    dkConfigs.delayMs_afterW2 = ui->spinBox_afterw2->value();
     dkConfigs.Exposure = ui->spinBox_baoguang->value();
     dkConfigs.FrameRate = ui->spinBox_zhenlv->value();
     dkConfigs.XLines = ui->spinBox_lumo->value();
@@ -241,6 +243,8 @@ void MainWindow::setDiankongConfigs(diankongConfigs dk)
     ui->spinBox_L3K->setValue(dk.delayMsL3);
     ui->spinBox_L4K->setValue(dk.delayMsL4);
     ui->spinBox_larmandelay->setValue(dk.delayMsLarman);
+    ui->spinBox_afterw1->setValue(dk.delayMs_afterW1);
+    ui->spinBox_afterw2->setValue(dk.delayMs_afterW2);
     ui->spinBox_baoguang->setValue(dk.Exposure);
     ui->spinBox_zhenlv->setValue(dk.FrameRate);
     ui->spinBox_lumo->setValue(dk.XLines);
