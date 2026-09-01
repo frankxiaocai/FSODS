@@ -80,8 +80,15 @@ Error_code DeviceManager::initEleControl()
 
     connect(m_modbusWorker, &ModbusWorker::sig_pollReadDone, this, &DeviceManager::slot_pollReadDone);
 
-    m_modbusWorker->plcconnect("192.168.0.140",501);
-    m_modbusWorker->startPoll(200);
+    // m_modbusWorker->plcconnect("192.168.0.140",501);
+    // m_modbusWorker->startPoll(200);
+    QMetaObject::invokeMethod(m_modbusWorker, "plcconnect",
+                              Qt::QueuedConnection,
+                              Q_ARG(QString, "192.168.0.140"),
+                              Q_ARG(quint16, 501));
+    QMetaObject::invokeMethod(m_modbusWorker, "startPoll",
+                              Qt::QueuedConnection,
+                              Q_ARG(int, 200));
     LOG_INFO("电控初始化成功");
     return Error_None;
 }
@@ -323,108 +330,57 @@ void DeviceManager::slot_actControl(int type)
     }
 }
 
-void DeviceManager::slot_actControl_new(int type)
+void DeviceManager::wheelActControl(int type)
 {
-    // ========== 执行动作方案2逻辑：同物料不动作 ==========
-    static bool firstFlag = true;
-    if(!firstFlag)
+    if(type == m_lastMaterial)
     {
-        // 如果物料类型和上一次相同
-        if(type == m_lastMaterial)
-        {
-            // 直接return退出，不执行动作
-            return;
-        }
+        qDebug()<<"相同物料 无操作";
     }
-    firstFlag = false;
+    else
+    {
+        //前一物料万向轮归正
+        int lastMaterial_T1 = getT1(m_lastMaterial);
+        int lastMaterial_T2 = getT2(m_lastMaterial);
+        QTimer::singleShot(lastMaterial_T1+lastMaterial_T2, this, [=]() {
+            wheelReset(m_lastMaterial);
+        });
 
+        //延迟T1 执行当前类型物料动作
+        int T1 = getT1(type);
+        QTimer::singleShot(T1, this, [=]() {
+            wheelAct(type);
+        });
+
+    }
     // 记录本次的物料类型，作为下一次对比的基准
     m_lastMaterial = type;
+}
 
-    // 如果物料类型和上一次不同，执行设备动作
-    if(type == 3)//1号万向轮 左转
+void DeviceManager::slot_actControl_new2(int type)
+{
+    if(type == shift_type)//拨杆
     {
-        //判断如果1号万向轮当前是右转状态，须先右转回正；延迟X1秒后执行左转，更新1号万向轮状态为左转
-        //判断如果1号万向轮当前是归位状态，延迟X1秒后执行左转，更新1号万向轮状态为左转
-        execW1SwitchToLeft();
-
-    }
-    else if(type == 2)//1号万向轮 右转
-    {
-        //判断如果1号万向轮当前是左转状态，须先左转回正；延迟X1秒后执行右转，更新万向轮状态为右转
-        //判断如果1号万向轮当前是归位状态，延迟X1秒后执行右转，更新万向轮状态为右转
-        execW1SwitchToRight();
-
-    }
-    else if(type == 5)//2号万向轮 左转
-    {
-        //延迟XX秒（实测）等上一物体经过1号万向轮后，把1号万向轮复位，防止对二号轮的干扰
-        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
-            execW1IDLE();
-        });
-
-        //延时200ms后，再执行2号万向轮左转；
-        //判断如果2号万向轮当前是右转状态，须先右转回正；延迟X2秒后执行左转，更新2号万向轮状态为左转
-        //判断如果2号万向轮当前是归位状态，延迟X2秒后执行左转，更新2号万向轮状态为左转
-        QTimer::singleShot(200, this, [=]() {
-            execW2SwitchToLeft();
-        });
-    }
-    else if(type == 6)//2号万向轮 右转
-    {
-        //延迟XX秒（实测）等上一物体经过1号万向轮后，把1号万向轮复位，防止对二号轮的干扰
-        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
-            execW1IDLE();
-        });
-        //延时200ms后，再执行2号万向轮右转；
-        //判断如果2号万向轮当前是左转状态，须先左转回正；延迟X2秒后执行右转，更新2号万向轮状态为右转
-        //判断如果2号万向轮当前是归位状态，延迟X2秒后执行右转，更新2号万向轮状态为右转
-        QTimer::singleShot(200, this, [=]() {
-            execW2SwitchToRight();
-        });
-    }
-    else if(type == 4)//推杆
-    {
-        // 延时m_delayMsL2毫秒之后执行推杆动作
-        QTimer::singleShot(m_delayMsL2, this, [=]() {
-            // PLC控制：2号推杆打开（true=输出开启）
-            //m_siemensModbusPlc->pushOnOff(2, true);
-            pushControl(2, true);
-            // 再延时1500ms，关闭推杆
-            QTimer::singleShot(1500, this, [=]() {
-                //m_siemensModbusPlc->pushOnOff(2, false);
-                pushControl(2, false);
-            });
-        });
-    }
-    else if(type == 7)//拨杆
-    {
-        // 延时m_delayMsL1毫秒执行拨杆动作
         QTimer::singleShot(m_delayMsL1, this, [=]() {
-            // PLC控制：1号拨杆输出打开
-            //m_siemensModbusPlc->pushOnOff(1, true);
             pushControl(1, true);
-            // 延时1000ms后关闭拨杆
+
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->pushOnOff(1, false);
                 pushControl(1, false);
             });
         });
     }
-    else//未知类型
+    else if(type == push_type)//推杆
     {
-        // 延迟XX秒（实测）等上一物体经过1号万向轮后，1号万向轮回正
-        //判断1号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新1号轮状态为回正
-        QTimer::singleShot(m_delayMs_afterW1, this, [=]() {
-            execW1IDLE();
+        QTimer::singleShot(m_delayMsL2, this, [=]() {
+            pushControl(2, true);
+
+            QTimer::singleShot(1500, this, [=]() {
+                pushControl(2, false);
+            });
         });
-        // 延迟XX秒（实测）等上一物体经过1号万向轮后，2号万向轮回正
-        //判断2号万向轮当前如果是右转状态，须右转回正，如果是左转状态，须左转回正，更新2号轮状态为回正
-        QTimer::singleShot(m_delayMs_afterW2, this, [=]() {
-            execW2IDLE();
-        });
+    }
+    else//万向轮
+    {
+        wheelActControl(type);
     }
 }
 
@@ -753,124 +709,6 @@ void DeviceManager::slot_lamanActControl(int type)
 
 }
 
-
-void DeviceManager::execW1SwitchToLeft()
-{
-    // 硬件约束：如果当前是RIGHT状态，必须先右转回正
-    if(m_curW1State == WheelRealState::RIGHT)
-    {
-        // 当前是右转，先执行右转回正";
-        //m_siemensModbusPlc->turnYou(1,false);
-        turnControl(1,5);
-        m_curW1State = WheelRealState::IDLE;
-        // 再执行左转
-        QTimer::singleShot(m_delayMsL3, this, [=]() {
-            //m_siemensModbusPlc->turnZuo(1,true);
-            turnControl(1,2);
-        });
-
-        m_curW1State = WheelRealState::LEFT;
-    }
-
-    // 当前已经IDLE，直接左转
-    QTimer::singleShot(m_delayMsL3, this, [=]() {
-        //m_siemensModbusPlc->turnZuo(1,true);
-        turnControl(1,2);
-    });
-    m_curW1State = WheelRealState::LEFT;
-
-    return;
-}
-
-void DeviceManager::execW1SwitchToRight()
-{
-    if(m_curW1State == WheelRealState::LEFT)
-    {
-        // 左转回正
-        //m_siemensModbusPlc->turnZuo(1,false);
-        turnControl(1,3);
-        m_curW1State = WheelRealState::IDLE;
-        // 再执行右转
-        QTimer::singleShot(m_delayMsL3, this, [=]() {
-            //m_siemensModbusPlc->turnYou(1,true);
-            turnControl(1,4);
-
-        });
-        m_curW1State = WheelRealState::RIGHT;
-    }
-
-    // 当前已经IDLE，直接右转
-    QTimer::singleShot(m_delayMsL3, this, [=]() {
-        //m_siemensModbusPlc->turnYou(1,true);
-        turnControl(1,4);
-
-    });
-    m_curW1State = WheelRealState::RIGHT;
-
-    return;
-}
-
-void DeviceManager::execW2SwitchToLeft()
-{
-    // 硬件约束：如果当前是RIGHT状态，必须先右转回正
-    if(m_curW2State == WheelRealState::RIGHT)
-    {
-        // 当前是右转，先执行右转回正";
-        //m_siemensModbusPlc->turnYou(2,false);
-        turnControl(2,5);
-        m_curW2State = WheelRealState::IDLE;
-        // 再执行左转
-        QTimer::singleShot(m_delayMsL4, this, [=]() {
-            //m_siemensModbusPlc->turnZuo(2,true);
-            turnControl(2,2);
-
-        });
-
-        m_curW2State = WheelRealState::LEFT;
-    }
-
-    // 当前已经IDLE，直接左转
-    QTimer::singleShot(m_delayMsL4, this, [=]() {
-        //m_siemensModbusPlc->turnZuo(2,true);
-        turnControl(2,2);
-
-    });
-
-    m_curW2State = WheelRealState::LEFT;
-
-    return;
-}
-
-void DeviceManager::execW2SwitchToRight()
-{
-    if(m_curW2State == WheelRealState::LEFT)
-    {
-        // 左转回正
-        //m_siemensModbusPlc->turnZuo(2,false);
-        turnControl(2,3);
-        m_curW2State = WheelRealState::IDLE;
-        // 再执行右转
-        QTimer::singleShot(m_delayMsL4, this, [=]() {
-            //m_siemensModbusPlc->turnYou(2,true);
-            turnControl(2,4);
-
-        });
-
-        m_curW2State = WheelRealState::RIGHT;
-    }
-
-    // 当前已经IDLE，直接右转
-    QTimer::singleShot(m_delayMsL4, this, [=]() {
-        //m_siemensModbusPlc->turnYou(2,true);
-        turnControl(2,4);
-
-    });
-
-    m_curW2State = WheelRealState::RIGHT;
-
-    return;
-}
-
 void DeviceManager::execW1IDLE()
 {
     if(m_curW1State == WheelRealState::LEFT)
@@ -908,6 +746,103 @@ void DeviceManager::execW2IDLE()
     }
 
     m_curW2State = WheelRealState::IDLE;
+}
+
+void DeviceManager::wheelAct(int type)
+{
+    if(type == wheel1_left_type)//1号轮 左转
+    {
+        turnControl(1,2);
+        m_curW1State = WheelRealState::LEFT;
+    }
+    else if(type == wheel1_right_type)//1号轮 右转
+    {
+        turnControl(1,4);
+        m_curW1State = WheelRealState::RIGHT;
+    }
+    else if(type == wheel2_left_type)//2号轮 左转
+    {
+        turnControl(2,2);
+        m_curW2State = WheelRealState::LEFT;
+    }
+    else if(type == wheel2_right_type)//2号轮 右转
+    {
+        turnControl(2,4);
+        m_curW2State = WheelRealState::RIGHT;
+    }
+    else if(type == 8)//1、2号轮回正
+    {
+        execW1IDLE();
+        QTimer::singleShot(200, this, [=]() {
+            execW2IDLE();
+        });
+    }
+    else
+    {
+        //
+    }
+}
+
+void DeviceManager::wheelReset(int type)
+{
+    if(type == wheel1_left_type)//1号轮 左转归正
+    {
+        turnControl(1,3);
+        m_curW1State = WheelRealState::IDLE;
+    }
+    else if(type == wheel1_right_type)//1号轮 右转归正
+    {
+        turnControl(1,5);
+        m_curW1State = WheelRealState::IDLE;
+    }
+    else if(type == wheel2_left_type)//2号轮 左转归正
+    {
+        turnControl(2,3);
+        m_curW2State = WheelRealState::IDLE;
+    }
+    else if(type == wheel2_right_type)//2号轮 右转归正
+    {
+        turnControl(2,5);
+        m_curW2State = WheelRealState::IDLE;
+    }
+    else if(type == 8)//1、2号轮回正
+    {
+        execW1IDLE();
+        QTimer::singleShot(200, this, [=]() {
+            execW2IDLE();
+        });
+
+    }
+    else{}
+}
+
+int DeviceManager::getT1(int type)
+{
+    int T1 = 0;
+    if(type == wheel1_left_type ||type == wheel1_right_type)
+    {
+        T1 = m_delayMsL3;
+    }
+    else if(type == wheel2_left_type ||type == wheel2_right_type)
+    {
+        T1 = m_delayMsL4;
+    }
+    else if(type == shift_type)
+    {
+        T1 = m_delayMsL1;
+    }
+    else if(type == push_type)
+    {
+        T1 = m_delayMsL2;
+    }
+    else{}
+    return T1;
+}
+
+int DeviceManager::getT2(int type)
+{
+    int T2 = 1000;
+    return T2;
 }
 
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)

@@ -83,6 +83,8 @@ private:
     HSIProcessor m_HSIClassifier;//HSI塑料分类算法
     RamanPlasticRecognizer m_RamanPlasticRecognizer;//拉曼塑料分类算法
 
+    int m_lastRegVal = 0;//上一次光栅值
+
     //高光谱参数
     double m_Exposure = 10;//曝光时间 ms
     double m_FrameRate = 200;//帧率
@@ -99,6 +101,14 @@ private:
     int m_delayMs_afterW1 = 3000;//过1号万向轮
     int m_delayMs_afterW2 = 4000;//过2号万向轮
 
+    //物料类型---制动方位
+    int shift_type = 3;//拨杆
+    int push_type = 2;//推杆
+    int wheel1_left_type = 7;//1号轮 左转
+    int wheel1_right_type = 4;//1号轮 右转
+    int wheel2_left_type = 5;//2号轮 左转
+    int wheel2_right_type = 6;//2号轮 右转
+
     //物体计数
     int m_objCount[9] = {0}; // 1~7种塑料 + 未知
     int m_objTotal = 0;//总数
@@ -106,9 +116,7 @@ private:
     // 执行逻辑优化----20260826 add
     WheelRealState m_curW1State{WheelRealState::IDLE};//1号万向轮 当前状态
     WheelRealState m_curW2State{WheelRealState::IDLE};//2号万向轮 当前状态
-    int m_lastMaterial = 0;//上一次物料类型
-
-    int m_lastRegVal = 0;//上一次光栅值
+    int m_lastMaterial = 999;//上一次物料类型
 
     //-------------- modbus地址  --------------
     //写
@@ -134,16 +142,12 @@ private:
 
     quint16 m_adress_shiftOI = 309;//拨杆 启动：1 停止：0
     quint16 m_adress_pushOI = 311;//推杆 启动：1 停止：0
-
     quint16 m_adress_wheel1OI = 315;//1号万向轮启停 启动：1 停止：0
     quint16 m_adress_wheel2OI = 318;//2号万向轮启停 启动：1 停止：0
-
     quint16 m_adress_wheel1_left = 313;//1号万向轮左转+回正 左转：1 回正：0
     quint16 m_adress_wheel2_left = 316;//2号万向轮左转+回正 左转：1 回正：0
-
     quint16 m_adress_wheel1_right = 314;//1号万向轮右转+回正 右转：1 回正：0
     quint16 m_adress_wheel2_right = 317;//2号万向轮右转+回正 右转：1 回正：0
-
     quint16 m_adress_larZhouOI = 3600;//运动轴是否允许对焦 允许：1 不允许：0
 
     //读
@@ -155,22 +159,27 @@ private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
     QImage Mat2QImage(const cv::Mat &mat);
 
-    // 高光谱-执行逻辑优化----20260826 add
-    void execW1SwitchToLeft();
-    void execW1SwitchToRight();
-    void execW2SwitchToLeft();
-    void execW2SwitchToRight();
+    //万向轮动作----20260831 add
+    void wheelAct(int type);
+    //万向轮回正
+    void wheelReset(int type);
     void execW1IDLE();
     void execW2IDLE();
+    //获取T1（检测线---动作执行时间）
+    int getT1(int type);
+    //获取T2（动作执行---结束时间）
+    int getT2(int type);
+    //万向轮控制逻辑
+    void wheelActControl(int type);
 
 private slots:
     void slot_onObjectArrived();//光栅检测物体到了处理
     void slot_onFrameArrived(const HyperLineBatch &batch);//高光谱采集结果处理
     void slot_onHikCaptureArrived(cv::Mat targetOnly);//相机定位图像处理
     void slot_hikObjectXY(double X,double Y); //相机定位位置处理
-    void slot_actControl(int type);//高光谱-制动
-    void slot_actControl_new(int type);//高光谱-制动逻辑优化----20260826 add
-    void slot_lamanActControl(int type);//拉曼-制动（单独一套控制逻辑）
+    void slot_actControl(int type);//高光谱-筛选控制(方案1)
+    void slot_actControl_new2(int type);//高光谱-筛选控制逻辑优化----20260831 add(方案2)
+    void slot_lamanActControl(int type);//拉曼-制动
     void slot_larZhou_beltStop();
     void slot_larZhou_focusOn();
 
