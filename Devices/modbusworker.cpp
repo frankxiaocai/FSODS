@@ -33,7 +33,7 @@ void ModbusWorker::init()
     m_pollTimer->setSingleShot(false);
 
     connect(m_pollTimer, &QTimer::timeout,this, &ModbusWorker::onPollTimerTimeout);
-    connect(this, &ModbusWorker::sigUrgentWrite,this, &ModbusWorker::urgentWriteHoldingReg, Qt::QueuedConnection);//, Qt::QueuedConnection
+    connect(this, &ModbusWorker::sigUrgentWrite,this, &ModbusWorker::urgentWriteHoldingReg);//, Qt::QueuedConnection
 }
 
 
@@ -74,7 +74,6 @@ void ModbusWorker::plcconnect(const QString &ip, quint16 port)
 void ModbusWorker::plcdisconnect()
 {
     stopPoll();
-    m_urgentQueue.clear();
     m_isUrgentWriting = false;
     m_pollBusy = false;
     if(m_modbusClient)
@@ -105,6 +104,7 @@ void ModbusWorker::urgentWriteHoldingReg(quint16 addr, quint16 value, const QStr
         return;
     }
 
+    m_isUrgentWriting = true;
     //-----------------------------------------------------------------------------
     QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters,addr,1);
     writeUnit.setValue(0,value);
@@ -115,7 +115,6 @@ void ModbusWorker::urgentWriteHoldingReg(quint16 addr, quint16 value, const QStr
     {
         emit sig_logMsg(QString("紧急写发送失败 %1").arg(m_modbusClient->errorString()));
         m_isUrgentWriting = false;
-        QMetaObject::invokeMethod(this, &ModbusWorker::processNextUrgentWrite, Qt::QueuedConnection);
         return;
     }
 
@@ -124,68 +123,11 @@ void ModbusWorker::urgentWriteHoldingReg(quint16 addr, quint16 value, const QStr
         QCoreApplication::processEvents();
     }
 
-
     // 绑定reply完成信号
     connect(reply, &QModbusReply::finished, this, [this, reply](){
         this->onWriteFinished(reply);
     });
-    //-------------------------------------------------------------------------------
 
-    // UrgentWriteItem item;
-    // item.regAddr = addr;
-    // item.value = value;
-    // item.tag = tag;//任务名
-    // item.submitMs = QDateTime::currentMSecsSinceEpoch();
-
-    // m_urgentQueue.enqueue(item);//任务入队
-    // emit sig_logMsg(QString("[%1]收到紧急写任务 tag:%2 addr:%3 val:%4")
-    //                 .arg(item.submitMs).arg(tag).arg(addr).arg(value));
-
-    // // 如果当前没有正在跑紧急写，立刻处理下一个
-    // if(!m_isUrgentWriting)
-    // {
-    //     processNextUrgentWrite();
-
-    // }
-}
-
-// 执行下一个紧急写任务
-void ModbusWorker::processNextUrgentWrite()
-{
-    if(m_urgentQueue.isEmpty())
-    {
-        m_isUrgentWriting = false;
-        return;
-    }
-    m_isUrgentWriting = true;
-
-    UrgentWriteItem item = m_urgentQueue.dequeue();
-
-    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters,item.regAddr,1);//QVector<quint16>{item.value}
-    writeUnit.setValue(0,item.value);
-
-    auto* reply = m_modbusClient->sendWriteRequest(writeUnit, 1);
-
-    if(!reply)
-    {
-        emit sig_logMsg(QString("紧急写发送失败 %1").arg(m_modbusClient->errorString()));
-        m_isUrgentWriting = false;
-        QMetaObject::invokeMethod(this, &ModbusWorker::processNextUrgentWrite, Qt::QueuedConnection);
-        return;
-    }
-
-    while(!reply->isFinished())
-    {
-        QCoreApplication::processEvents();
-    }
-
-    reply->setProperty("urgentTag", item.tag);
-    reply->setProperty("urgentSubmitMs", item.submitMs);
-
-    // 绑定reply完成信号
-    connect(reply, &QModbusReply::finished, this, [this, reply](){
-        this->onWriteFinished(reply);
-    });
 }
 
 // 普通轮询：读取多个不连续保持寄存器
@@ -250,9 +192,7 @@ void ModbusWorker::onWriteFinished(QModbusReply *reply)
 
     reply->deleteLater();
 
-    // 处理队列中下一个紧急任务
     m_isUrgentWriting = false;
-    processNextUrgentWrite();
 }
 
 // 轮询【读】 完成回调

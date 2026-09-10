@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QFile qssFile(a.applicationDirPath() + "/qss/industrial.qss");
+    QFile qssFile(a.applicationDirPath() + "/qss/qss2.qss");
     if(qssFile.open(QIODevice::ReadOnly))
     {
         QString style = qssFile.readAll();

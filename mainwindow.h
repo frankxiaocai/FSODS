@@ -30,38 +30,33 @@ private slots:
     void on_pushButton_initLarman_clicked();
     void on_pushButton_initEleControl_clicked();
     void on_pushButton_LarmanCap_clicked();
-
     void on_pushButton_pushControl_1_clicked();
     void on_pushButton_pushControl_2_clicked();
     void on_pushButton_pushControl_close_clicked();
     void on_pushButton_pushControl_2close_clicked();
-    void on_pushButton_turn_clicked();
-    void on_pushButton_turn2_clicked();
-
     void on_pushButton_beltonoff_clicked();
     void on_pushButton_beltonoff_2_clicked();
-
     void on_checkBox_clicked(bool checked);
     void on_pushButton_apply_clicked();
     void on_pushButton_saveLog_clicked();
-
     void on_pushButton_close_clicked();
     void on_pushButton_mini_clicked();
-    void on_pushButton_test_clicked();
-
-    void on_pushButton_clicked();
-
     void on_pushButton_larzhoukai_clicked();
-
     void on_pushButton_larzhouguan_clicked();
-
     void on_checkBox_fastMode_checkStateChanged(const Qt::CheckState &arg1);
-
     void on_checkBox_slowMode_checkStateChanged(const Qt::CheckState &arg1);
-
     void on_pushButton_start_clicked();
-
     void on_pushButton_stop_clicked();
+
+    void on_pushButton_lumoCap_clicked();
+
+    void on_pushButton_shiftOI_clicked(bool checked);
+
+    void on_pushButton_pushOI_clicked(bool checked);
+
+    void on_pushButton_turn1OI_clicked(bool checked);
+
+    void on_pushButton_turn2OI_clicked(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -69,7 +64,7 @@ private:
 
     void showError(Error_code err);// 错误提示函数
     QString plasticTypeToString(int code);//类型显示
-    void updateCountLabel(int type);//计数
+    void updateCountLabel(int type);//物体计数
     diankongConfigs getDiankongConfigs();
     void setDiankongConfigs(diankongConfigs dk);
 

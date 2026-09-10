@@ -18,43 +18,6 @@ MainWindow::~MainWindow()
 void MainWindow::init()
 {
     initUI();
-    //相机相关
-    connect(m_DeviceManager, &DeviceManager::sig_newImage, this, [=](const QImage& img) {
-        ui->label_image1->setPixmap(
-            QPixmap::fromImage(img)
-                .scaled(ui->label_image1->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)
-            );
-    });
-
-    connect(m_DeviceManager, &DeviceManager::sig_hikCaptured, this, [=](const QImage& img) {
-        ui->label_image2->setPixmap(
-            QPixmap::fromImage(img)
-                .scaled(ui->label_image2->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation)
-            );
-    });
-
-    connect(m_DeviceManager, &DeviceManager::sig_hikObjectXY, this, [=](double X, double Y)
-            {
-                QString text = QString("normX = %1     normY = %2").arg(X, 0, 'f', 3).arg(Y, 0, 'f', 3);
-                ui->label_objectXY->setText(text);
-            });
-
-    //高光谱相关
-    connect(m_DeviceManager, &DeviceManager::sig_batchFinished, this, [=](const HyperLineBatch& LineBatch)
-            {
-                QDateTime currenttime = QDateTime::currentDateTime();
-                QString info = QString("%1高光谱采集信息\n"
-                                       "width:%2 | bands:%3 | bytesPerPixel:%4\n"
-                                       "requestedLines:%5 | receivedLines:%6 | data总字节:%7\n")
-                                   .arg(currenttime.toString("yyyy-MM-dd HH:mm:ss"))
-                                   .arg(LineBatch.width)
-                                   .arg(LineBatch.bands)
-                                   .arg(LineBatch.bytesPerPixel)
-                                   .arg(LineBatch.requestedLines)
-                                   .arg(LineBatch.receivedLines)
-                                   .arg(LineBatch.data.size());
-                ui->label_lumo->setText(info);
-            });
 
     //识别结果显示
     connect(m_DeviceManager, &DeviceManager::sig_plasticType_hsi, this, [=](int type) {
@@ -91,8 +54,6 @@ void MainWindow::initUI()
     // 日志
     Logger::instance()->setTextEdit(ui->textEdit);
 
-    //隐藏相机相关
-    ui->widget_camera->setHidden(true);
 }
 
 void MainWindow::showError(Error_code err)
@@ -227,8 +188,6 @@ diankongConfigs MainWindow::getDiankongConfigs()
     dkConfigs.delayMsL3 = ui->spinBox_L3K->value();
     dkConfigs.delayMsL4 = ui->spinBox_L4K->value();
     dkConfigs.delayMsLarman = ui->spinBox_larmandelay->value();
-    dkConfigs.delayMs_afterW1 = ui->spinBox_afterw1->value();
-    dkConfigs.delayMs_afterW2 = ui->spinBox_afterw2->value();
     dkConfigs.Exposure = ui->spinBox_baoguang->value();
     dkConfigs.FrameRate = ui->spinBox_zhenlv->value();
     dkConfigs.XLines = ui->spinBox_lumo->value();
@@ -243,8 +202,6 @@ void MainWindow::setDiankongConfigs(diankongConfigs dk)
     ui->spinBox_L3K->setValue(dk.delayMsL3);
     ui->spinBox_L4K->setValue(dk.delayMsL4);
     ui->spinBox_larmandelay->setValue(dk.delayMsLarman);
-    ui->spinBox_afterw1->setValue(dk.delayMs_afterW1);
-    ui->spinBox_afterw2->setValue(dk.delayMs_afterW2);
     ui->spinBox_baoguang->setValue(dk.Exposure);
     ui->spinBox_zhenlv->setValue(dk.FrameRate);
     ui->spinBox_lumo->setValue(dk.XLines);
@@ -302,11 +259,6 @@ void MainWindow::on_pushButton_mini_clicked()
     this->showMinimized();
 }
 
-void MainWindow::on_pushButton_test_clicked()
-{
-    //m_DeviceManager->test();
-}
-
 void MainWindow::on_pushButton_initEleControl_clicked()
 {
     Error_code error = m_DeviceManager->initEleControl();
@@ -341,17 +293,10 @@ void MainWindow::on_pushButton_apply_clicked()
     m_DeviceManager->setFrameRate(ui->spinBox_zhenlv->value());
     m_DeviceManager->setExposure(ui->spinBox_baoguang->value());
     m_DeviceManager->setXLines(ui->spinBox_lumo->value());
-    m_DeviceManager->setdelayMs_afterW1(ui->spinBox_afterw1->value());
-    m_DeviceManager->setdelayMs_afterW2(ui->spinBox_afterw2->value());
 
     diankongConfigs dkc = getDiankongConfigs();
     FileIO::instance()->writeDianKongConfig(dkc);
 
-}
-
-void MainWindow::on_pushButton_turn_clicked()
-{
-    m_DeviceManager->turnControl(1,ui->spinBox_turn->value());
 }
 
 
@@ -384,13 +329,6 @@ void MainWindow::on_pushButton_pushControl_2close_clicked()
     m_DeviceManager->pushControl(2,false);
 }
 
-
-void MainWindow::on_pushButton_turn2_clicked()
-{
-    m_DeviceManager->turnControl(2,ui->spinBox_turn->value());
-}
-
-
 void MainWindow::on_pushButton_saveLog_clicked()
 {
     QString text = ui->textEdit->toPlainText();
@@ -401,12 +339,6 @@ void MainWindow::on_pushButton_saveLog_clicked()
         out << text;
         file.close();
     }
-}
-
-
-void MainWindow::on_pushButton_clicked()
-{
-    m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
 }
 
 
@@ -449,5 +381,47 @@ void MainWindow::on_pushButton_start_clicked()
 void MainWindow::on_pushButton_stop_clicked()
 {
     m_DeviceManager->beltOpenAll(false);
+}
+
+
+void MainWindow::on_pushButton_lumoCap_clicked()
+{
+    m_DeviceManager->lumoCapture(ui->spinBox_lumo->value());
+}
+
+
+void MainWindow::on_pushButton_shiftOI_clicked(bool checked)
+{
+    m_DeviceManager->pushControl(1,checked);
+}
+
+
+void MainWindow::on_pushButton_pushOI_clicked(bool checked)
+{
+    m_DeviceManager->pushControl(2,checked);
+}
+
+
+void MainWindow::on_pushButton_turn1OI_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_DeviceManager->turnControl(1,1);
+    }
+    else{
+        m_DeviceManager->turnControl(1,0);
+    }
+}
+
+
+void MainWindow::on_pushButton_turn2OI_clicked(bool checked)
+{
+    if(checked)
+    {
+        m_DeviceManager->turnControl(2,1);
+    }
+    else{
+        m_DeviceManager->turnControl(2,0);
+    }
 }
 

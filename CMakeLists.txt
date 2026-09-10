@@ -30,7 +30,7 @@ qt_add_executable(FSODS
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
-    Devices/hikcamera.cpp Devices/hikcamera.h Devices/hyperspectralcamera.cpp Devices/hyperspectralcamera.h Devices/larmanmodbustcp.cpp Devices/larmanmodbustcp.h Devices/plccontroller.cpp Devices/plccontroller.h
+    Devices/hikcamera.cpp Devices/hikcamera.h Devices/hyperspectralcamera.cpp Devices/hyperspectralcamera.h Devices/larmanmodbustcp.cpp Devices/larmanmodbustcp.h
     CoreTools/fileio.cpp CoreTools/fileio.h CoreTools/logger.cpp CoreTools/logger.h CoreTools/mystruct.h CoreTools/RamanPlasticRecognizer.cpp CoreTools/RamanPlasticRecognizer.h
     CoreTools/HSIPlasticRecognizer/HSIProcessor.cpp CoreTools/HSIPlasticRecognizer/HSIProcessor.h CoreTools/HSIPlasticRecognizer/ModelWrapper.cpp CoreTools/HSIPlasticRecognizer/ModelWrapper.h
     devicemanager.cpp devicemanager.h

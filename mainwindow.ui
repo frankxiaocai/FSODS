@@ -29,9 +29,9 @@
     <widget class="QTextEdit" name="textEdit">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>40</x>
        <y>980</y>
-       <width>1001</width>
+       <width>1841</width>
        <height>91</height>
       </rect>
      </property>
@@ -39,92 +39,18 @@
       <string notr="true"/>
      </property>
     </widget>
-    <widget class="QWidget" name="widget_camera" native="true">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>1020</x>
-       <y>610</y>
-       <width>621</width>
-       <height>461</height>
-      </rect>
-     </property>
-     <widget class="QLabel" name="label_objectXY">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>601</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_initCamera">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>601</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image1">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>110</y>
-        <width>51</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image2">
-      <property name="geometry">
-       <rect>
-        <x>79</x>
-        <y>110</y>
-        <width>461</width>
-        <height>331</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-    </widget>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>820</x>
-       <y>10</y>
-       <width>281</width>
-       <height>41</height>
+       <x>790</x>
+       <y>20</y>
+       <width>391</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>20</pointsize>
+       <pointsize>28</pointsize>
        <bold>true</bold>
       </font>
      </property>
@@ -138,9 +64,9 @@
     <widget class="QWidget" name="widget_larman" native="true">
      <property name="geometry">
       <rect>
-       <x>1020</x>
-       <y>60</y>
-       <width>621</width>
+       <x>1130</x>
+       <y>470</y>
+       <width>751</width>
        <height>501</height>
       </rect>
      </property>
@@ -148,8 +74,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
-        <width>601</width>
+        <y>380</y>
+        <width>231</width>
         <height>41</height>
        </rect>
       </property>
@@ -161,70 +87,21 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>110</y>
-        <width>311</width>
+        <y>430</y>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>采集</string>
+       <string>手动采集</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_test">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>60</y>
-        <width>101</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>测试</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_larzhoukai">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>151</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>允许对焦</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_larzhouguan">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>60</y>
-        <width>151</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>不允许对焦</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="widget_lumo" native="true">
-     <property name="geometry">
-      <rect>
-       <x>350</x>
-       <y>60</y>
-       <width>661</width>
-       <height>501</height>
-      </rect>
-     </property>
      <widget class="QPushButton" name="pushButton_initLumo">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
-        <width>641</width>
+        <y>230</y>
+        <width>231</width>
         <height>41</height>
        </rect>
       </property>
@@ -232,452 +109,25 @@
        <string>初始化lumo</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_lumo">
+     <widget class="QPushButton" name="pushButton_lumoCap">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>350</y>
-        <width>641</width>
-        <height>141</height>
+        <y>280</y>
+        <width>111</width>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>抓取信息</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
+       <string>手动采集</string>
       </property>
      </widget>
-     <widget class="QWidget" name="widget_configTest" native="true">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>50</y>
-        <width>641</width>
-        <height>271</height>
-       </rect>
-      </property>
-      <widget class="QPushButton" name="pushButton_apply">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>210</y>
-         <width>531</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>参数应用</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_5">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>61</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>延迟/ms</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_L2k">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>10</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>5500</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_L3K">
-       <property name="geometry">
-        <rect>
-         <x>370</x>
-         <y>10</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>6500</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_L1K">
-       <property name="geometry">
-        <rect>
-         <x>180</x>
-         <y>10</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>3000</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_zhenlv">
-       <property name="geometry">
-        <rect>
-         <x>70</x>
-         <y>140</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>200</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_baoguang">
-       <property name="geometry">
-        <rect>
-         <x>230</x>
-         <y>140</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_7">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>140</y>
-         <width>61</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>帧率</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_8">
-       <property name="geometry">
-        <rect>
-         <x>150</x>
-         <y>140</y>
-         <width>81</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>曝光时间/ms</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="geometry">
-        <rect>
-         <x>410</x>
-         <y>140</y>
-         <width>51</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>保存</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_lumo">
-       <property name="geometry">
-        <rect>
-         <x>310</x>
-         <y>140</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>500</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>380</x>
-         <y>140</y>
-         <width>21</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>行</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_L4K">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>10</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>6500</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_L0K">
-       <property name="geometry">
-        <rect>
-         <x>90</x>
-         <y>10</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton">
-       <property name="geometry">
-        <rect>
-         <x>550</x>
-         <y>210</y>
-         <width>81</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>手动采集</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_larmandelay">
-       <property name="geometry">
-        <rect>
-         <x>570</x>
-         <y>10</y>
-         <width>61</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>1000</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>10</y>
-         <width>21</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>拨</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>250</x>
-         <y>10</y>
-         <width>21</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>推</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_6">
-       <property name="geometry">
-        <rect>
-         <x>340</x>
-         <y>10</y>
-         <width>31</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>轮1</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_9">
-       <property name="geometry">
-        <rect>
-         <x>440</x>
-         <y>10</y>
-         <width>31</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>轮2</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_10">
-       <property name="geometry">
-        <rect>
-         <x>60</x>
-         <y>10</y>
-         <width>31</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>光栅</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_afterw1">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>60</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>500</number>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="spinBox_afterw2">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>60</y>
-         <width>71</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimum">
-        <number>-99999</number>
-       </property>
-       <property name="maximum">
-        <number>99999</number>
-       </property>
-       <property name="value">
-        <number>1000</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_11">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>60</y>
-         <width>41</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>单摆</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_12">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>60</y>
-         <width>41</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>间隔</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_13">
-       <property name="geometry">
-        <rect>
-         <x>540</x>
-         <y>10</y>
-         <width>31</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>偏移</string>
-       </property>
-      </widget>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="widget_diankong" native="true">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>331</width>
-       <height>501</height>
-      </rect>
-     </property>
      <widget class="QPushButton" name="pushButton_initEleControl">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
-        <width>311</width>
+        <y>20</y>
+        <width>231</width>
         <height>41</height>
        </rect>
       </property>
@@ -685,68 +135,80 @@
        <string>初始化电控</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_diankong_state">
+     <widget class="QPushButton" name="pushButton_shiftOI">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
-        <width>311</width>
-        <height>131</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>连接状态</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_pushControl_1">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>340</y>
-        <width>71</width>
+        <y>80</y>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>1拨杆开</string>
+       <string>拨杆开关</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_pushControl_2">
+     <widget class="QPushButton" name="pushButton_pushOI">
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>340</y>
-        <width>71</width>
+        <x>130</x>
+        <y>80</y>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>2推杆开</string>
+       <string>推杆开关</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_turn">
+     <widget class="QPushButton" name="pushButton_turn1OI">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>80</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>1号万向轮开关</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_turn2OI">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>80</y>
+        <width>111</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>2号万向轮开关</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_beltnum">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>390</y>
-        <width>241</width>
+        <y>130</y>
+        <width>41</width>
         <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>万向轮1</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="spinBox_turn">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>390</y>
-        <width>61</width>
-        <height>91</height>
        </rect>
       </property>
       <property name="maximum">
@@ -756,25 +218,12 @@
        <number>1</number>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_beltonoff">
-      <property name="geometry">
-       <rect>
-        <x>80</x>
-        <y>220</y>
-        <width>141</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>皮带启停</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBox_beltonoff">
       <property name="geometry">
        <rect>
-        <x>230</x>
-        <y>220</y>
-        <width>91</width>
+        <x>60</x>
+        <y>130</y>
+        <width>71</width>
         <height>41</height>
        </rect>
       </property>
@@ -799,41 +248,25 @@
        <string>开/关</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_beltonoff_2">
+     <widget class="QPushButton" name="pushButton_beltonoff">
       <property name="geometry">
        <rect>
-        <x>80</x>
-        <y>270</y>
-        <width>141</width>
+        <x>130</x>
+        <y>130</y>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>皮带速度</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="spinBox_beltnum">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>220</y>
-        <width>61</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="maximum">
-       <number>10</number>
-      </property>
-      <property name="value">
-       <number>1</number>
+       <string>皮带启停</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_beltSpeed">
       <property name="geometry">
        <rect>
-        <x>230</x>
-        <y>270</y>
-        <width>91</width>
+        <x>250</x>
+        <y>130</y>
+        <width>51</width>
         <height>41</height>
        </rect>
       </property>
@@ -844,56 +277,17 @@
        <number>25</number>
       </property>
      </widget>
-     <widget class="Line" name="line">
+     <widget class="QPushButton" name="pushButton_beltonoff_2">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>320</y>
-        <width>311</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_pushControl_close">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>340</y>
-        <width>71</width>
+        <x>310</x>
+        <y>130</y>
+        <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>1拨杆关</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_pushControl_2close">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>340</y>
-        <width>71</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>2推杆关</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_turn2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>440</y>
-        <width>241</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>万向轮2</string>
+       <string>皮带调速</string>
       </property>
      </widget>
     </widget>
@@ -926,414 +320,436 @@
     <widget class="QWidget" name="widget_typeShow" native="true">
      <property name="geometry">
       <rect>
-       <x>1650</x>
-       <y>60</y>
-       <width>261</width>
-       <height>1011</height>
+       <x>350</x>
+       <y>100</y>
+       <width>1531</width>
+       <height>341</height>
       </rect>
      </property>
-     <widget class="QLabel" name="label_type">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>261</width>
-        <height>231</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>塑料识别类型</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type0">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>270</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>未知</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type00">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>270</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type1">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>330</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>LDPE</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type11">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>330</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>390</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>HDPE</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type3">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>450</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>PP</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type22">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>390</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type33">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>450</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type7">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>690</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>PET</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type77">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>690</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type66">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>630</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type4">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>510</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>PS</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type6">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>630</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>PVC</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type5">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>570</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>ABS</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type44">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>510</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_type55">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>570</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_typeAll2">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>750</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>/</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_typeAll">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>750</y>
-        <width>53</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>总计</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="3">
+       <widget class="QWidget" name="widget_3" native="true">
+        <widget class="QLabel" name="label_type2">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>HDPE</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type22">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>20</y>
+           <width>51</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QWidget" name="widget_2" native="true">
+        <widget class="QLabel" name="label_type33">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>20</y>
+           <width>51</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type3">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>PP</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QWidget" name="widget" native="true">
+        <widget class="QLabel" name="label_type11">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>20</y>
+           <width>51</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type1">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>LDPE</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="0" column="4" rowspan="2">
+       <widget class="QWidget" name="widget_9" native="true">
+        <widget class="QLabel" name="label_typeAll">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>60</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>总计</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_typeAll2">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>140</y>
+           <width>51</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QWidget" name="widget_4" native="true">
+        <widget class="QLabel" name="label_type5">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>ABS</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type55">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>20</y>
+           <width>41</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QWidget" name="widget_7" native="true">
+        <widget class="QLabel" name="label_type7">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>PET</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type77">
+         <property name="geometry">
+          <rect>
+           <x>110</x>
+           <y>20</y>
+           <width>61</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QWidget" name="widget_8" native="true">
+        <widget class="QLabel" name="label_type0">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>未知</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type00">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>20</y>
+           <width>61</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QWidget" name="widget_5" native="true">
+        <widget class="QLabel" name="label_type4">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>PS</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type44">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>20</y>
+           <width>51</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QWidget" name="widget_6" native="true">
+        <widget class="QLabel" name="label_type6">
+         <property name="geometry">
+          <rect>
+           <x>40</x>
+           <y>20</y>
+           <width>53</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>PVC</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_type66">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>20</y>
+           <width>61</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>/</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
     <widget class="QPushButton" name="pushButton_start">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>640</y>
-       <width>75</width>
-       <height>23</height>
+       <x>60</x>
+       <y>552</y>
+       <width>281</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -1343,10 +759,10 @@
     <widget class="QPushButton" name="pushButton_stop">
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>640</y>
-       <width>75</width>
-       <height>23</height>
+       <x>60</x>
+       <y>630</y>
+       <width>281</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -1356,8 +772,8 @@
     <widget class="QCheckBox" name="checkBox_fastMode">
      <property name="geometry">
       <rect>
-       <x>40</x>
-       <y>580</y>
+       <x>60</x>
+       <y>520</y>
        <width>80</width>
        <height>19</height>
       </rect>
@@ -1375,8 +791,8 @@
     <widget class="QCheckBox" name="checkBox_slowMode">
      <property name="geometry">
       <rect>
-       <x>120</x>
-       <y>580</y>
+       <x>220</x>
+       <y>520</y>
        <width>80</width>
        <height>19</height>
       </rect>
@@ -1387,6 +803,427 @@
      <attribute name="buttonGroup">
       <string notr="true">buttonGroup</string>
      </attribute>
+    </widget>
+    <widget class="QLabel" name="label_logo">
+     <property name="geometry">
+      <rect>
+       <x>640</x>
+       <y>10</y>
+       <width>131</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_configTest" native="true">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>470</y>
+       <width>761</width>
+       <height>501</height>
+      </rect>
+     </property>
+     <widget class="QPushButton" name="pushButton_apply">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>420</y>
+        <width>431</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>参数应用</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_L2k">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>290</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>5500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_L3K">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>290</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>6500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_L1K">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>240</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>3000</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_zhenlv">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>40</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>200</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_baoguang">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>40</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_7">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>61</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>帧率</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_8">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>40</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>曝光时间/ms</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>130</y>
+        <width>51</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>保存</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_lumo">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>130</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>500</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>130</y>
+        <width>21</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>行</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_L4K">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>340</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>6500</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_L0K">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>240</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_larmandelay">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>340</y>
+        <width>71</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>-99999</number>
+      </property>
+      <property name="maximum">
+       <number>99999</number>
+      </property>
+      <property name="value">
+       <number>1000</number>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>350</x>
+        <y>240</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>拨杆制动/ms</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>290</y>
+        <width>21</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>推</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>290</y>
+        <width>31</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>轮1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_9">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>340</y>
+        <width>31</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>轮2</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_10">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>240</y>
+        <width>81</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>拉曼检测/ms</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_13">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>340</y>
+        <width>31</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>偏移</string>
+      </property>
+     </widget>
+     <widget class="Line" name="line">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>210</y>
+        <width>691</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QLabel" name="label_diankong_state">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>750</y>
+       <width>311</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>连接状态</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QWidget" name="widget_10" native="true">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>110</y>
+       <width>291</width>
+       <height>321</height>
+      </rect>
+     </property>
+     <widget class="QLabel" name="label_type">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>150</y>
+        <width>191</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>类型</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>80</y>
+        <width>101</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>18</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>物料类型</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

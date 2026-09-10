@@ -5,7 +5,6 @@ DeviceManager::DeviceManager(QObject *parent)
     ,m_HikCamera(new HikCamera(this))
     ,m_HyperspectralCamera(new HyperspectralCamera(this))
     ,m_larmanModbusTCP(new LarmanModbusTCP(this))
-    ,m_siemensModbusPlc(new PlcController(this))
     ,m_modbusWorker(new ModbusWorker(this))
 {
     init();
@@ -19,12 +18,12 @@ DeviceManager::~DeviceManager()
 void DeviceManager::init()
 {
     //相机采集信号
-    connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
-    connect(m_HikCamera, &HikCamera::sig_objectCapture, this, &DeviceManager::slot_onHikCaptureArrived);
-    connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::sig_hikObjectXY);
-    connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::slot_hikObjectXY);
+    // connect(m_HikCamera, &HikCamera::sig_newImage, this, &DeviceManager::sig_newImage);
+    // connect(m_HikCamera, &HikCamera::sig_objectCapture, this, &DeviceManager::slot_onHikCaptureArrived);
+    // connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::sig_hikObjectXY);
+    // connect(m_HikCamera, &HikCamera::sig_objectLocation, this, &DeviceManager::slot_hikObjectXY);
     // 高光谱采集信号
-    connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
+    // connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::sig_batchFinished);
     connect(m_HyperspectralCamera, &HyperspectralCamera::sig_batchFinished,this,&DeviceManager::slot_onFrameArrived);
     //光栅
     // connect(m_siemensModbusPlc, &PlcController::sig_regChanged, this, &DeviceManager::slot_onObjectArrived);
@@ -105,10 +104,6 @@ Error_code DeviceManager::initLumo()
 
     bool initializeerr = m_HyperspectralCamera->initialize();
     if(!initializeerr){return Error_Hyperspectral;}
-
-    // //设置相机参数
-    // m_HyperspectralCamera->setExposure(m_Exposure);//曝光时间 ms
-    // m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
 
     LOG_INFO("Lumo初始化成功");
     return Error_None;
@@ -209,14 +204,12 @@ Error_code DeviceManager::larmanCapture()
 void DeviceManager::setExposure(double aaa)
 {
     m_Exposure = aaa;
-    //设置相机参数
     m_HyperspectralCamera->setExposure(m_Exposure);//曝光时间 ms
 }
 
 void DeviceManager::setFrameRate(double aaa)
 {
     m_FrameRate = aaa;
-    //设置相机参数
     m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
 }
 
@@ -231,187 +224,80 @@ void DeviceManager::setRunMode(bool isfastMode)
 
 void DeviceManager::slot_actControl(int type)
 {
-    //执行制动
     switch (type)
     {
-    //拨杆
-    case 1:
+    case 1://拨杆
         QTimer::singleShot(m_delayMsL1, this, [=]() {
-            //m_siemensModbusPlc->pushOnOff(1, true);
             pushControl(1, true);
 
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->pushOnOff(1, false);
                 pushControl(1, false);
             });
         });
         break;
-        //推杆
-    case 4:
+
+    case 4://推杆
         QTimer::singleShot(m_delayMsL2, this, [=]() {
-            //m_siemensModbusPlc->pushOnOff(2, true);
             pushControl(2, true);
 
             QTimer::singleShot(1500, this, [=]() {
-                //m_siemensModbusPlc->pushOnOff(2, false);
                 pushControl(2, false);
             });
         });
         break;
-        //万向轮1 左
-    case 3:
+
+    case 3://万向轮1 左
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            //m_siemensModbusPlc->turnZuo(1,true);
             turnControl(1,2);
 
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->turnZuo(1,false);
                 turnControl(1,3);
             });
         });
         break;
-        //万向轮1 右
-    case 2:
+
+    case 2://万向轮1 右
         QTimer::singleShot(m_delayMsL3, this, [=]() {
-            //m_siemensModbusPlc->turnYou(1,true);
             turnControl(1,4);
 
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->turnYou(1,false);
                 turnControl(1,5);
             });
         });
         break;
-        //万向轮2 左
-    case 5:
+
+    case 5://万向轮2 左
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            //m_siemensModbusPlc->turnZuo(2,true);
             turnControl(2,2);
 
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->turnZuo(2,false);
                 turnControl(2,3);
             });
         });
         break;
-        //万向轮2 右
-    case 6:
+
+    case 6://万向轮2 右
         QTimer::singleShot(m_delayMsL4, this, [=]() {
-            //m_siemensModbusPlc->turnYou(2,true);
             turnControl(2,4);
 
             QTimer::singleShot(1000, this, [=]() {
-                //m_siemensModbusPlc->turnYou(2,false);
                 turnControl(2,5);
             });
         });
         break;
-
     }
-}
-
-void DeviceManager::wheelActControl(int type)
-{
-    if(m_isFirstRun)
-    {
-        //延迟T1 执行当前类型物料动作
-        int T1 = getT1(type);
-        QTimer::singleShot(T1, this, [=]() {
-            wheelAct(type);
-        });
-        m_lastMaterial = type;
-        m_isFirstRun = false;
-        return;
-    }
-
-    if(type == m_lastMaterial)
-    {
-        qDebug()<<"相同物料 无操作";
-    }
-    else
-    {
-        int oldType = m_lastMaterial;
-        //前一物料万向轮归正
-        int lastMaterial_T1 = getT1(oldType);
-        int lastMaterial_T2 = getT2(oldType);
-        QTimer::singleShot(lastMaterial_T1-lastMaterial_T2, this, [=]() {
-            wheelReset(oldType);
-        });
-
-        if(type == unKnow_type)
-        {
-            m_lastMaterial = type;
-            return;
-        }
-
-        //延迟T1 执行当前类型物料动作
-        int T1 = getT1(type);
-        QTimer::singleShot(T1, this, [=]() {
-            wheelAct(type);
-
-        });
-
-    }
-    // 记录本次的物料类型，作为下一次对比的基准
-    m_lastMaterial = type;
-
-}
-
-void DeviceManager::slot_actControl_new2(int type)
-{
-    if(type == shift_type)//拨杆
-    {
-        QTimer::singleShot(m_delayMsL1, this, [=]() {
-            pushControl(1, true);
-
-            QTimer::singleShot(1000, this, [=]() {
-                pushControl(1, false);
-            });
-        });
-    }
-    else if(type == push_type)//推杆
-    {
-        QTimer::singleShot(m_delayMsL2, this, [=]() {
-            pushControl(2, true);
-
-            QTimer::singleShot(1500, this, [=]() {
-                pushControl(2, false);
-            });
-        });
-    }
-    else//万向轮
-    {
-        wheelActControl(type);
-    }
-}
-
-
-void DeviceManager::slot_larZhou_beltStop()
-{
-    LOG_INFO("接收来自拉曼PLC 皮带停止信号");
-}
-
-void DeviceManager::slot_larZhou_focusOn()
-{
-    LOG_INFO("接收来自拉曼PLC 聚焦完成信号");
 }
 
 void DeviceManager::slot_pollReadDone(int regAddr, quint16 val)
 {
-    if(regAddr == m_adress_grating)//光栅轮询
+    if(regAddr == m_adress_grating)//光栅
     {
         emit sig_guangshanValue(val);
-        // 对比上次值，发生变化则触发信号+日志
         if ((val != m_lastRegVal)&(val == 1))
         {
             slot_onObjectArrived();
         }
         m_lastRegVal = val;
-    }
-    else if(regAddr == m_adress_LarZhou_focusOn)//聚焦完成轮询
-    {
-
-
     }
     else
     {
@@ -421,7 +307,6 @@ void DeviceManager::slot_pollReadDone(int regAddr, quint16 val)
 
 void DeviceManager::beltOpen(int num, bool isopen)
 {
-    //m_siemensModbusPlc->beltOnOff(num,isopen);
     int value = isopen ? 1 : 0;
     quint16 addr;
 
@@ -464,7 +349,6 @@ void DeviceManager::beltOpen(int num, bool isopen)
 
 void DeviceManager::beltSpeed(int num, int speed)
 {
-    //m_siemensModbusPlc->beltSpeedControl(num,speed);
     quint16 addr;
 
     switch (num)
@@ -506,7 +390,6 @@ void DeviceManager::beltSpeed(int num, int speed)
 
 void DeviceManager::pushControl(int num,bool op)
 {
-    //m_siemensModbusPlc->pushOnOff(num,op);
     int value = op ? 1 : 0;
     quint16 addr;
 
@@ -548,32 +431,26 @@ void DeviceManager::turnControl(int num,int order)
 
     if(order == 0)//万向轮关
     {
-        //m_siemensModbusPlc->turnOnOff(num,false);
         emit m_modbusWorker->sigUrgentWrite(addr01, 0, QString("万向轮%1停止").arg(num));
     }
     else if(order == 1)//万向轮开
     {
-        //m_siemensModbusPlc->turnOnOff(num,true);
         emit m_modbusWorker->sigUrgentWrite(addr01, 1, QString("万向轮%1启动").arg(num));
     }
     else if(order == 2)//万向轮左转
     {
-        //m_siemensModbusPlc->turnZuo(num,true);
         emit m_modbusWorker->sigUrgentWrite(addr23, 1, QString("万向轮%1左转").arg(num));
     }
     else if(order == 3)//万向轮左转回正
     {
-        //m_siemensModbusPlc->turnZuo(num,false);
         emit m_modbusWorker->sigUrgentWrite(addr23, 0, QString("万向轮%1左转回正").arg(num));
     }
     else if(order == 4)//万向轮右转
     {
-        //m_siemensModbusPlc->turnYou(num,true);
         emit m_modbusWorker->sigUrgentWrite(addr45, 1, QString("万向轮%1右转").arg(num));
     }
     else if(order == 5)//万向轮右转回正
     {
-        //m_siemensModbusPlc->turnYou(num,false);
         emit m_modbusWorker->sigUrgentWrite(addr45, 0, QString("万向轮%1右转回正").arg(num));
     }
 }
@@ -622,7 +499,6 @@ void DeviceManager::beltOpenAll(bool isOpen)
         });
     }
 
-
 }
 
 void DeviceManager::updateObjectCount(int objType)
@@ -649,11 +525,6 @@ void DeviceManager::clearAllObjectCount()
 
 void DeviceManager::setLarZhouOI(bool isok)
 {
-    if (!m_modbusWorker)
-    {
-        LOG_ERROR("未初始化modbusWorker！！！");
-        return;
-    }
 
     if(isok)
     {
@@ -664,27 +535,9 @@ void DeviceManager::setLarZhouOI(bool isok)
     }
 }
 
-
 void DeviceManager::test()
 {
 
-    std::string imgPath = "E:/test/555.jpeg";
-    cv::Mat srcMat = cv::imread(imgPath, cv::IMREAD_COLOR);
-    if (srcMat.empty())
-    {
-        qDebug() << "图像读取失败";
-        return;
-    }
-    cv::Mat m_grayMat,m_mergeMat,m_grayDrawMat;
-    double X,Y;
-    cv::cvtColor(srcMat, m_grayMat, cv::COLOR_BGR2GRAY);
-    m_HikCamera->objectLocate(m_grayMat,m_mergeMat,X,Y,m_grayDrawMat);
-
-    // 弹窗显示灰度图
-    cv::imshow("Draw Image", m_grayDrawMat);
-    slot_onHikCaptureArrived(m_grayDrawMat);
-
-    emit sig_hikObjectXY(X,Y); //物体定位
 }
 
 
@@ -865,146 +718,6 @@ void DeviceManager::slot_lamanActControl(int type)
     }
 }
 
-void DeviceManager::execW1IDLE()
-{
-    if(m_curW1State == WheelRealState::LEFT)
-    {
-        // 左转回正
-        //m_siemensModbusPlc->turnZuo(1,false);
-        turnControl(1,3);
-    }
-
-    if(m_curW1State == WheelRealState::RIGHT)
-    {
-        // 左转回正
-        //m_siemensModbusPlc->turnYou(1,false);
-        turnControl(1,5);
-    }
-
-    m_curW1State = WheelRealState::IDLE;
-}
-
-void DeviceManager::execW2IDLE()
-{
-
-    if(m_curW2State == WheelRealState::LEFT)
-    {
-        // 左转回正
-        //m_siemensModbusPlc->turnZuo(2,false);
-        turnControl(2,3);
-    }
-
-    if(m_curW2State == WheelRealState::RIGHT)
-    {
-        // 右转回正
-        //m_siemensModbusPlc->turnYou(2,false);
-        turnControl(2,5);
-    }
-
-    m_curW2State = WheelRealState::IDLE;
-}
-
-void DeviceManager::wheelAct(int type)
-{
-    if(type == wheel1_left_type)//1号轮 左转
-    {
-        turnControl(1,2);
-        m_curW1State = WheelRealState::LEFT;
-    }
-    else if(type == wheel1_right_type)//1号轮 右转
-    {
-        turnControl(1,4);
-        m_curW1State = WheelRealState::RIGHT;
-    }
-    else if(type == wheel2_left_type)//2号轮 左转
-    {
-        turnControl(2,2);
-        m_curW2State = WheelRealState::LEFT;
-    }
-    else if(type == wheel2_right_type)//2号轮 右转
-    {
-        turnControl(2,4);
-        m_curW2State = WheelRealState::RIGHT;
-    }
-    else if(type == 8)//1、2号轮回正
-    {
-        execW1IDLE();
-        QTimer::singleShot(200, this, [=]() {
-            execW2IDLE();
-        });
-    }
-    else
-    {
-        //
-    }
-}
-
-void DeviceManager::wheelReset(int type)
-{
-    if(type == wheel1_left_type)//1号轮 左转归正
-    {
-        // turnControl(1,3);
-        // m_curW1State = WheelRealState::IDLE;
-        execW1IDLE();
-    }
-    else if(type == wheel1_right_type)//1号轮 右转归正
-    {
-        // turnControl(1,5);
-        // m_curW1State = WheelRealState::IDLE;
-        execW1IDLE();
-    }
-    else if(type == wheel2_left_type)//2号轮 左转归正
-    {
-        // turnControl(2,3);
-        // m_curW2State = WheelRealState::IDLE;
-        execW2IDLE();
-    }
-    else if(type == wheel2_right_type)//2号轮 右转归正
-    {
-        // turnControl(2,5);
-        // m_curW2State = WheelRealState::IDLE;
-        execW2IDLE();
-    }
-    else if(type == 8)//1、2号轮回正
-    {
-        // execW1IDLE();
-        // QTimer::singleShot(200, this, [=]() {
-        //     execW2IDLE();
-        // });
-
-    }
-    else{}
-}
-
-int DeviceManager::getT1(int type)
-{
-    int T1 = 0;
-    if(type == wheel1_left_type ||type == wheel1_right_type)
-    {
-        T1 = m_delayMsL3;
-    }
-    else if(type == wheel2_left_type ||type == wheel2_right_type)
-    {
-        T1 = m_delayMsL4;
-    }
-    else if(type == shift_type)
-    {
-        T1 = m_delayMsL1;
-    }
-    else if(type == push_type)
-    {
-        T1 = m_delayMsL2;
-    }
-    else{}
-    return T1;
-}
-
-int DeviceManager::getT2(int type)
-{
-    int T2 = m_delayMs_afterW2-m_delayMs_afterW1;
-    return T2;
-}
-
 void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
 {
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
@@ -1029,16 +742,6 @@ void DeviceManager::slot_onFrameArrived(const HyperLineBatch &batch)
 
 }
 
-void DeviceManager::slot_onHikCaptureArrived(cv::Mat targetOnly)
-{
-    QImage imgTarget = Mat2QImage(targetOnly);
-    emit sig_hikCaptured(imgTarget);
-}
-
-void DeviceManager::slot_hikObjectXY(double X, double Y)
-{
-    //传输给拉曼运动轴
-}
 
 void DeviceManager::slot_onObjectArrived()
 {

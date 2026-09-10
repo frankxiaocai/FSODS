@@ -48,27 +48,14 @@ private slots:
     void onReadFinished(QModbusReply* reply);
 
 private:
-    // 执行队列里下一个【紧急写】
-    void processNextUrgentWrite();
-
-private:
     QModbusTcpClient* m_modbusClient{nullptr};
     QTimer* m_pollTimer{nullptr};
 
-    bool m_isUrgentWriting{false};          // 是否正在处理紧急写
-    bool m_pollBusy{false};                 // 轮询读正在执行，防止并发报文风暴
-    int m_pollIndex{0};                     // 当前读到第几个寄存器
+    bool m_isUrgentWriting{false};
+    bool m_pollBusy{false};//轮询标识位，防止并发报文风暴
 
-    // 需要轮询的不连续保持寄存器地址
-    QVector<int> m_pollRegAddrs = {600,3500,3501};
-
-    struct UrgentWriteItem{
-        quint16 regAddr;
-        quint16 value;
-        QString tag;
-        quint64 submitMs;
-    };
-    QQueue<UrgentWriteItem> m_urgentQueue; // 紧急写任务队列
+    QVector<int> m_pollRegAddrs = {600,3500,3501};//轮询地址
+    int m_pollIndex{0};//当前读到第几个寄存器
 };
 
 #endif // MODBUSWORKER_H

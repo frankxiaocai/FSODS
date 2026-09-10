@@ -39,5 +39,5 @@ void Logger::writeLog(const QString &level, const QString &msg, QColor color)
     }
 }
 
-void Logger::info(const QString& msg)   { writeLog("INFO",  msg, Qt::white); }
+void Logger::info(const QString& msg)   { writeLog("INFO",  msg, Qt::black); }
 void Logger::error(const QString& msg)   { writeLog("ERROR", msg, Qt::red); }
