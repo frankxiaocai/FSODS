@@ -55,6 +55,14 @@ private slots:
 
     void on_pushButton_larzhouguan_clicked();
 
+    void on_checkBox_fastMode_checkStateChanged(const Qt::CheckState &arg1);
+
+    void on_checkBox_slowMode_checkStateChanged(const Qt::CheckState &arg1);
+
+    void on_pushButton_start_clicked();
+
+    void on_pushButton_stop_clicked();
+
 private:
     Ui::MainWindow *ui;
     DeviceManager* m_DeviceManager;

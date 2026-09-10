@@ -421,3 +421,33 @@ void MainWindow::on_pushButton_larzhouguan_clicked()
     m_DeviceManager->setLarZhouOI(false);
 }
 
+
+void MainWindow::on_checkBox_fastMode_checkStateChanged(const Qt::CheckState &arg1)
+{
+    if(arg1 == Qt::Checked)
+    {
+        m_DeviceManager->setRunMode(true);
+    }
+}
+
+
+void MainWindow::on_checkBox_slowMode_checkStateChanged(const Qt::CheckState &arg1)
+{
+    if(arg1 == Qt::Checked)
+    {
+        m_DeviceManager->setRunMode(false);
+    }
+}
+
+
+void MainWindow::on_pushButton_start_clicked()
+{
+    m_DeviceManager->beltOpenAll(true);
+}
+
+
+void MainWindow::on_pushButton_stop_clicked()
+{
+    m_DeviceManager->beltOpenAll(false);
+}
+

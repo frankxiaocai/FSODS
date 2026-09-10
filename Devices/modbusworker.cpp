@@ -2,17 +2,13 @@
 #include <QDebug>
 #include <QModbusReply>
 #include <QDateTime>
+#include <QElapsedTimer>
+#include <QCoreApplication>
 
 ModbusWorker::ModbusWorker(QObject *parent)
     : QObject(parent)
 {
-    m_modbusClient = new QModbusTcpClient(this);
-    m_pollTimer = new QTimer(this);
-    m_pollTimer->setSingleShot(false);
 
-    connect(m_pollTimer, &QTimer::timeout,this, &ModbusWorker::onPollTimerTimeout);
-    //信号绑定到槽，强制QueuedConnection，任务投递到worker子线程
-    connect(this, &ModbusWorker::sigUrgentWrite,this, &ModbusWorker::urgentWriteHoldingReg, Qt::QueuedConnection);
 }
 
 ModbusWorker::~ModbusWorker()
@@ -22,15 +18,57 @@ ModbusWorker::~ModbusWorker()
     {
         m_modbusClient->disconnectDevice();
     }
+    qDebug() << "ModbusWorker 析构释放";
+}
+
+void ModbusWorker::init()
+{
+    if(m_modbusClient)
+        return;
+    m_modbusClient = new QModbusTcpClient(this);
+    m_modbusClient->setTimeout(1000);
+    m_modbusClient->setNumberOfRetries(3);
+
+    m_pollTimer = new QTimer(this);
+    m_pollTimer->setSingleShot(false);
+
+    connect(m_pollTimer, &QTimer::timeout,this, &ModbusWorker::onPollTimerTimeout);
+    connect(this, &ModbusWorker::sigUrgentWrite,this, &ModbusWorker::urgentWriteHoldingReg, Qt::QueuedConnection);//, Qt::QueuedConnection
 }
 
 
 void ModbusWorker::plcconnect(const QString &ip, quint16 port)
 {
-    m_modbusClient->setConnectionParameter(QModbusDevice::NetworkPortParameter, port);
-    m_modbusClient->setConnectionParameter(QModbusDevice::NetworkAddressParameter, ip);
-    m_modbusClient->connectDevice();
-    emit sig_logMsg(QString("尝试连接PLC %1:%2").arg(ip).arg(port));
+    init();
+    m_modbusClient->setConnectionParameter(
+        QModbusDevice::NetworkAddressParameter,
+        QVariant(ip));
+
+    m_modbusClient->setConnectionParameter(
+        QModbusDevice::NetworkPortParameter,
+        QVariant(port));
+
+    if(!m_modbusClient->connectDevice())
+    {
+        return ;
+    }
+
+    QElapsedTimer timer;
+
+    timer.start();
+
+    while(m_modbusClient->state()
+           != QModbusDevice::ConnectedState)
+    {
+        QCoreApplication::processEvents();
+
+        if(timer.elapsed() > 3000)
+        {
+            return ;
+        }
+    }
+
+    emit sig_logMsg(QString("成功连接PLC %1:%2").arg(ip).arg(port));
 }
 
 void ModbusWorker::plcdisconnect()
@@ -39,7 +77,10 @@ void ModbusWorker::plcdisconnect()
     m_urgentQueue.clear();
     m_isUrgentWriting = false;
     m_pollBusy = false;
-    m_modbusClient->disconnectDevice();
+    if(m_modbusClient)
+    {
+        m_modbusClient->disconnectDevice();
+    }
 }
 
 void ModbusWorker::startPoll(int pollIntervalMs)
@@ -56,7 +97,7 @@ void ModbusWorker::stopPoll()
 }
 
 // 提交紧急写任务
-void ModbusWorker::urgentWriteHoldingReg(int addr, quint16 value, const QString &tag)
+void ModbusWorker::urgentWriteHoldingReg(quint16 addr, quint16 value, const QString &tag)
 {
     if(m_modbusClient->state() != QModbusDevice::ConnectedState)
     {
@@ -64,21 +105,48 @@ void ModbusWorker::urgentWriteHoldingReg(int addr, quint16 value, const QString 
         return;
     }
 
-    UrgentWriteItem item;
-    item.regAddr = addr;
-    item.value = value;
-    item.tag = tag;//任务名
-    item.submitMs = QDateTime::currentMSecsSinceEpoch();
+    //-----------------------------------------------------------------------------
+    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters,addr,1);
+    writeUnit.setValue(0,value);
 
-    m_urgentQueue.enqueue(item);//任务入队
-    emit sig_logMsg(QString("[%1]收到紧急写任务 tag:%2 addr:%3 val:%4")
-                    .arg(item.submitMs).arg(tag).arg(addr).arg(value));
+    auto* reply = m_modbusClient->sendWriteRequest(writeUnit, 1);
 
-    // 如果当前没有正在跑紧急写，立刻处理下一个
-    if(!m_isUrgentWriting)
+    if(!reply)
     {
-        processNextUrgentWrite();
+        emit sig_logMsg(QString("紧急写发送失败 %1").arg(m_modbusClient->errorString()));
+        m_isUrgentWriting = false;
+        QMetaObject::invokeMethod(this, &ModbusWorker::processNextUrgentWrite, Qt::QueuedConnection);
+        return;
     }
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
+    }
+
+
+    // 绑定reply完成信号
+    connect(reply, &QModbusReply::finished, this, [this, reply](){
+        this->onWriteFinished(reply);
+    });
+    //-------------------------------------------------------------------------------
+
+    // UrgentWriteItem item;
+    // item.regAddr = addr;
+    // item.value = value;
+    // item.tag = tag;//任务名
+    // item.submitMs = QDateTime::currentMSecsSinceEpoch();
+
+    // m_urgentQueue.enqueue(item);//任务入队
+    // emit sig_logMsg(QString("[%1]收到紧急写任务 tag:%2 addr:%3 val:%4")
+    //                 .arg(item.submitMs).arg(tag).arg(addr).arg(value));
+
+    // // 如果当前没有正在跑紧急写，立刻处理下一个
+    // if(!m_isUrgentWriting)
+    // {
+    //     processNextUrgentWrite();
+
+    // }
 }
 
 // 执行下一个紧急写任务
@@ -93,15 +161,22 @@ void ModbusWorker::processNextUrgentWrite()
 
     UrgentWriteItem item = m_urgentQueue.dequeue();
 
-    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters,item.regAddr,QVector<quint16>{item.value});
+    QModbusDataUnit writeUnit(QModbusDataUnit::HoldingRegisters,item.regAddr,1);//QVector<quint16>{item.value}
+    writeUnit.setValue(0,item.value);
 
-    QModbusReply* reply = m_modbusClient->sendWriteRequest(writeUnit, 1);
+    auto* reply = m_modbusClient->sendWriteRequest(writeUnit, 1);
+
     if(!reply)
     {
         emit sig_logMsg(QString("紧急写发送失败 %1").arg(m_modbusClient->errorString()));
         m_isUrgentWriting = false;
         QMetaObject::invokeMethod(this, &ModbusWorker::processNextUrgentWrite, Qt::QueuedConnection);
         return;
+    }
+
+    while(!reply->isFinished())
+    {
+        QCoreApplication::processEvents();
     }
 
     reply->setProperty("urgentTag", item.tag);
@@ -193,7 +268,7 @@ void ModbusWorker::onReadFinished(QModbusReply *reply)
         {
             const QModbusDataUnit& unit = reply->result();
             quint16 val = unit.value(0);
-            emit sig_logMsg(QString("轮询读取寄存器[%1] = %2").arg(pollAddr).arg(val));
+            //emit sig_logMsg(QString("轮询读取寄存器[%1] = %2").arg(pollAddr).arg(val));
             emit sig_pollReadDone(pollAddr,val);
         }
         else

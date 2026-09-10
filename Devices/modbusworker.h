@@ -15,6 +15,7 @@ public:
     explicit ModbusWorker(QObject *parent = nullptr);
     ~ModbusWorker();
 
+    void init();
     // 连接PLC
     void plcconnect(const QString& ip, quint16 port = 502);
     void plcdisconnect();
@@ -25,18 +26,18 @@ public:
 
 signals:
     // 提交【紧急写】任务信号
-    void sigUrgentWrite(int addr, quint16 value, const QString& tag);
+    void sigUrgentWrite(quint16 addr, quint16 value, const QString& tag);
 
     // 日志信号
     void sig_logMsg(const QString& msg);
     // 轮询【读】完成信号
-    void sig_pollReadDone(int regAddr,quint16 val);
+    void sig_pollReadDone(quint16 regAddr,quint16 val);
     // 【紧急写】完成信号
     void sig_urgentWriteFinished(bool ok, const QString& tag, quint64 reqSubmitMs, quint64 reqDoneMs);
 
 private slots:
     // 提交【紧急写】任务槽函数
-    void urgentWriteHoldingReg(int addr, quint16 value, const QString& tag = "");
+    void urgentWriteHoldingReg(quint16 addr, quint16 value, const QString& tag = "");
 
     // 普通轮询槽：周期发送【读】请求
     void onPollTimerTimeout();
@@ -62,7 +63,7 @@ private:
     QVector<int> m_pollRegAddrs = {600,3500,3501};
 
     struct UrgentWriteItem{
-        int regAddr;
+        quint16 regAddr;
         quint16 value;
         QString tag;
         quint64 submitMs;

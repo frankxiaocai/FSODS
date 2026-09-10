@@ -53,12 +53,14 @@ public:
     void setExposure(double aaa);
     void setFrameRate(double aaa);
     void setXLines(int line){m_XLines = line;}
+    void setRunMode(bool isfastMode);
 
     //制动控制
     void beltOpen(int num,bool isopen);
     void beltSpeed(int num,int speed);
-    void pushControl(int num,bool op);//推杆 （序号）
+    void pushControl(int num,bool op);
     void turnControl(int num,int order);
+    void beltOpenAll(bool isOpen);//一键启停
 
     //设置拉曼运动轴是否允许对焦
     void setLarZhouOI(bool isok);
@@ -84,6 +86,7 @@ private:
     RamanPlasticRecognizer m_RamanPlasticRecognizer;//拉曼塑料分类算法
 
     int m_lastRegVal = 0;//上一次光栅值
+    bool m_isFastMode{true};//快速模式
 
     //高光谱参数
     double m_Exposure = 10;//曝光时间 ms
@@ -92,22 +95,25 @@ private:
     bool m_isSave = false;//是否保存标识位
 
     //制动延迟时间
-    int m_delayMsL0 = 0;//光栅-高光谱延迟 ms
+    int m_delayMsL0 = 0;//光栅-拉曼延迟 ms
     int m_delayMsL1 = 1000;//拨杆
     int m_delayMsL2 = 2000;//推杆
     int m_delayMsL3 = 3000;//1号万向轮
     int m_delayMsL4 = 4000;//2号万向轮
     int m_larmanDelay = 900;//拉曼单独控制逻辑延迟差
-    int m_delayMs_afterW1 = 3000;//过1号万向轮
-    int m_delayMs_afterW2 = 4000;//过2号万向轮
+    int m_delayMs_afterW1 = 500;//单次摆动时间
+    int m_delayMs_afterW2 = 1000;//前后物料间隔时间
+    int m_T2 = 500;//单次摆动时间
+    int m_T3 = 1000;//前后物料间隔时间
 
     //物料类型---制动方位
-    int shift_type = 3;//拨杆
-    int push_type = 2;//推杆
-    int wheel1_left_type = 7;//1号轮 左转
-    int wheel1_right_type = 4;//1号轮 右转
+    int shift_type = 1;//拨杆
+    int push_type = 4;//推杆
+    int wheel1_left_type = 3;//1号轮 左转
+    int wheel1_right_type = 2;//1号轮 右转
     int wheel2_left_type = 5;//2号轮 左转
     int wheel2_right_type = 6;//2号轮 右转
+    int unKnow_type = 8;
 
     //物体计数
     int m_objCount[9] = {0}; // 1~7种塑料 + 未知
@@ -158,6 +164,7 @@ private:
 private:
     void writeBatch2Raw(const HyperLineBatch &batch,int type);//保存采集光谱+类型数据
     QImage Mat2QImage(const cv::Mat &mat);
+    QString RamanErrorCodeToChinese(RamanErrorCode code);//拉曼错误码
 
     //万向轮动作----20260831 add
     void wheelAct(int type);
@@ -167,10 +174,11 @@ private:
     void execW2IDLE();
     //获取T1（检测线---动作执行时间）
     int getT1(int type);
-    //获取T2（动作执行---结束时间）
+    //获取T2 前后物体间隔时间
     int getT2(int type);
     //万向轮控制逻辑
     void wheelActControl(int type);
+    bool m_isFirstRun = true;
 
 private slots:
     void slot_onObjectArrived();//光栅检测物体到了处理
@@ -178,7 +186,7 @@ private slots:
     void slot_onHikCaptureArrived(cv::Mat targetOnly);//相机定位图像处理
     void slot_hikObjectXY(double X,double Y); //相机定位位置处理
     void slot_actControl(int type);//高光谱-筛选控制(方案1)
-    void slot_actControl_new2(int type);//高光谱-筛选控制逻辑优化----20260831 add(方案2)
+    void slot_actControl_new2(int type);//高光谱-筛选控制(方案2)
     void slot_lamanActControl(int type);//拉曼-制动
     void slot_larZhou_beltStop();
     void slot_larZhou_focusOn();

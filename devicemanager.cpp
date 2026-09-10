@@ -6,19 +6,13 @@ DeviceManager::DeviceManager(QObject *parent)
     ,m_HyperspectralCamera(new HyperspectralCamera(this))
     ,m_larmanModbusTCP(new LarmanModbusTCP(this))
     ,m_siemensModbusPlc(new PlcController(this))
+    ,m_modbusWorker(new ModbusWorker(this))
 {
     init();
 }
 
 DeviceManager::~DeviceManager()
 {
-    //====线程安全退出顺序：quit → wait → delete对象====
-    m_workerThread->quit();
-    m_workerThread->wait();
-
-    delete m_modbusWorker;
-    delete m_workerThread;
-
     qDebug() << "DeviceManager 析构释放";
 }
 
@@ -46,23 +40,6 @@ void DeviceManager::init()
 
 Error_code DeviceManager::initEleControl()
 {
-    // //====旧版本ModbusPlc类
-    // bool error = m_siemensModbusPlc->plcconnect("192.168.0.140",501);
-    // if(!error)
-    // {
-    //     LOG_INFO("电控连接失败");
-    //     return Error_EleControl;
-    // }
-    // LOG_INFO("电控初始化成功");
-    // m_siemensModbusPlc->startReadReg();
-    // return Error_None;
-
-    //====【改动】new ModbusWorker() 不要传this，禁止父对象====
-    m_modbusWorker = new ModbusWorker();
-    m_workerThread = new QThread;
-    m_modbusWorker->moveToThread(m_workerThread);
-    m_workerThread->start();
-
     connect(m_modbusWorker,&ModbusWorker::sig_logMsg,this,[](const QString& s){
         LOG_INFO(s);
     });
@@ -80,15 +57,8 @@ Error_code DeviceManager::initEleControl()
 
     connect(m_modbusWorker, &ModbusWorker::sig_pollReadDone, this, &DeviceManager::slot_pollReadDone);
 
-    // m_modbusWorker->plcconnect("192.168.0.140",501);
-    // m_modbusWorker->startPoll(200);
-    QMetaObject::invokeMethod(m_modbusWorker, "plcconnect",
-                              Qt::QueuedConnection,
-                              Q_ARG(QString, "192.168.0.140"),
-                              Q_ARG(quint16, 501));
-    QMetaObject::invokeMethod(m_modbusWorker, "startPoll",
-                              Qt::QueuedConnection,
-                              Q_ARG(int, 200));
+    m_modbusWorker->plcconnect("192.168.0.140",501);
+    m_modbusWorker->startPoll(200);
     LOG_INFO("电控初始化成功");
     return Error_None;
 }
@@ -224,7 +194,8 @@ Error_code DeviceManager::larmanCapture()
     RamanErrorCode error = m_RamanPlasticRecognizer.recognition(std_wave,std_originalSpectrum,type);
     if(error!=Error_None_raman)
     {
-        LOG_ERROR("拉曼塑料算法识别失败");
+        QString larmanerror = RamanErrorCodeToChinese(error);
+        LOG_ERROR("拉曼塑料检测算法失败："+larmanerror);
         return Error_Larman;
     }
     QString currentTime3 = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
@@ -249,13 +220,22 @@ void DeviceManager::setFrameRate(double aaa)
     m_HyperspectralCamera->setFrameRate(m_FrameRate);//帧率
 }
 
+void DeviceManager::setRunMode(bool isfastMode)
+{
+    m_isFastMode = isfastMode;
+    setLarZhouOI(!isfastMode);
+    QString logStr = QString("当前模式： %1")
+                         .arg(m_isFastMode ? "快检模式" : "精检模式");
+    LOG_INFO(logStr);
+}
+
 void DeviceManager::slot_actControl(int type)
 {
     //执行制动
     switch (type)
     {
     //拨杆
-    case 3:
+    case 1:
         QTimer::singleShot(m_delayMsL1, this, [=]() {
             //m_siemensModbusPlc->pushOnOff(1, true);
             pushControl(1, true);
@@ -267,7 +247,7 @@ void DeviceManager::slot_actControl(int type)
         });
         break;
         //推杆
-    case 2:
+    case 4:
         QTimer::singleShot(m_delayMsL2, this, [=]() {
             //m_siemensModbusPlc->pushOnOff(2, true);
             pushControl(2, true);
@@ -279,7 +259,7 @@ void DeviceManager::slot_actControl(int type)
         });
         break;
         //万向轮1 左
-    case 7:
+    case 3:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
             //m_siemensModbusPlc->turnZuo(1,true);
             turnControl(1,2);
@@ -291,7 +271,7 @@ void DeviceManager::slot_actControl(int type)
         });
         break;
         //万向轮1 右
-    case 4:
+    case 2:
         QTimer::singleShot(m_delayMsL3, this, [=]() {
             //m_siemensModbusPlc->turnYou(1,true);
             turnControl(1,4);
@@ -332,28 +312,49 @@ void DeviceManager::slot_actControl(int type)
 
 void DeviceManager::wheelActControl(int type)
 {
+    if(m_isFirstRun)
+    {
+        //延迟T1 执行当前类型物料动作
+        int T1 = getT1(type);
+        QTimer::singleShot(T1, this, [=]() {
+            wheelAct(type);
+        });
+        m_lastMaterial = type;
+        m_isFirstRun = false;
+        return;
+    }
+
     if(type == m_lastMaterial)
     {
         qDebug()<<"相同物料 无操作";
     }
     else
     {
+        int oldType = m_lastMaterial;
         //前一物料万向轮归正
-        int lastMaterial_T1 = getT1(m_lastMaterial);
-        int lastMaterial_T2 = getT2(m_lastMaterial);
-        QTimer::singleShot(lastMaterial_T1+lastMaterial_T2, this, [=]() {
-            wheelReset(m_lastMaterial);
+        int lastMaterial_T1 = getT1(oldType);
+        int lastMaterial_T2 = getT2(oldType);
+        QTimer::singleShot(lastMaterial_T1-lastMaterial_T2, this, [=]() {
+            wheelReset(oldType);
         });
+
+        if(type == unKnow_type)
+        {
+            m_lastMaterial = type;
+            return;
+        }
 
         //延迟T1 执行当前类型物料动作
         int T1 = getT1(type);
         QTimer::singleShot(T1, this, [=]() {
             wheelAct(type);
+
         });
 
     }
     // 记录本次的物料类型，作为下一次对比的基准
     m_lastMaterial = type;
+
 }
 
 void DeviceManager::slot_actControl_new2(int type)
@@ -387,16 +388,12 @@ void DeviceManager::slot_actControl_new2(int type)
 
 void DeviceManager::slot_larZhou_beltStop()
 {
-    //皮带静止
     LOG_INFO("接收来自拉曼PLC 皮带停止信号");
 }
 
 void DeviceManager::slot_larZhou_focusOn()
 {
     LOG_INFO("接收来自拉曼PLC 聚焦完成信号");
-
-    //larmanCapture();
-
 }
 
 void DeviceManager::slot_pollReadDone(int regAddr, quint16 val)
@@ -414,10 +411,6 @@ void DeviceManager::slot_pollReadDone(int regAddr, quint16 val)
     else if(regAddr == m_adress_LarZhou_focusOn)//聚焦完成轮询
     {
 
-        if(val == 1)
-        {
-            //启动拉曼
-        }
 
     }
     else
@@ -585,6 +578,53 @@ void DeviceManager::turnControl(int num,int order)
     }
 }
 
+void DeviceManager::beltOpenAll(bool isOpen)
+{
+    for(int i = 1; i < 10; ++i)
+    {
+
+        QTimer::singleShot(200*i-200, this, [=]() {
+            beltOpen(i, isOpen);
+        });
+    }
+
+
+    int order = isOpen? 1:0;
+    QTimer::singleShot(1800, this, [=]() {
+        turnControl(1,order);
+    });
+
+    QTimer::singleShot(2000, this, [=]() {
+        turnControl(2,order);
+    });
+
+
+    int slow_speed5 = 6;
+    int slow_speed6 = 15;
+    if(m_isFastMode)
+    {
+        QTimer::singleShot(2200, this, [=]() {
+            beltSpeed(5,50*200);
+        });
+
+        QTimer::singleShot(2400, this, [=]() {
+            beltSpeed(6,50*200);
+        });
+    }
+    else
+    {
+        QTimer::singleShot(2200, this, [=]() {
+            beltSpeed(5,slow_speed5*200);
+        });
+
+        QTimer::singleShot(2400, this, [=]() {
+            beltSpeed(6,slow_speed6*200);
+        });
+    }
+
+
+}
+
 void DeviceManager::updateObjectCount(int objType)
 {
     m_objCount[objType]++;
@@ -609,13 +649,17 @@ void DeviceManager::clearAllObjectCount()
 
 void DeviceManager::setLarZhouOI(bool isok)
 {
+    if (!m_modbusWorker)
+    {
+        LOG_ERROR("未初始化modbusWorker！！！");
+        return;
+    }
+
     if(isok)
     {
-        //m_siemensModbusPlc->setLarZhouStart();
         emit m_modbusWorker->sigUrgentWrite(m_adress_larZhouOI, 1, "允许对焦");
     }
     else {
-        //m_siemensModbusPlc->setLarZhouStop();
         emit m_modbusWorker->sigUrgentWrite(m_adress_larZhouOI, 0, "不允许对焦");
     }
 }
@@ -704,9 +748,121 @@ QImage DeviceManager::Mat2QImage(const cv::Mat &mat)
     }
 }
 
+QString DeviceManager::RamanErrorCodeToChinese(RamanErrorCode code)
+{
+    switch (code)
+    {
+    case Error_None_raman:					return "无错误";
+    case Error_InputSpectrumEmpty:			return "输入光谱为空";
+    case Error_InputSpectrumSizeMismatch:	return "光谱数据长度不匹配";
+    case Error_InputSpectrumTooFewPoints:	return "光谱有效点数过少";
+    case Error_InputSpectrumInvalidValue:	return "光谱包含非法数值";
+    case Error_InputSpectrumRangeTooSmall:	return "光谱横坐标范围过小";
+    case Error_InputSpectrumDuplicateXTooMany: return "光谱横坐标重复点过多";
+
+    case Error_TrainDirectoryEmpty:			return "训练文件夹为空";
+    case Error_TrainDirectoryNotExist:		return "训练文件夹不存在";
+    case Error_TrainDirectoryNotAccessible:	return "训练文件夹无访问权限";
+    case Error_TrainCsvMissing:				return "训练CSV文件缺失";
+    case Error_TrainCsvOpenFailed:			return "CSV文件打开失败";
+    case Error_TrainCsvOccupied:			return "CSV文件被占用";
+    case Error_TrainCsvReadFailed:			return "CSV读取失败";
+    case Error_TrainCsvEmpty:				return "CSV文件内容为空";
+    case Error_TrainCsvNoValidNumber:		return "CSV无有效数值";
+    case Error_TrainCsvFormatInvalid:		return "CSV格式非法";
+    case Error_TrainCsvDimensionInvalid:	return "CSV维度异常";
+    case Error_TrainCsvContainsInvalidValue: return "CSV包含非法数值";
+    case Error_TrainSampleEmpty:			return "训练样本为空";
+    case Error_TrainSampleDimensionMismatch: return "训练样本维度不一致";
+
+    case Error_BaselineCorrectionFailed:	return "基线校正失败";
+    case Error_LinearSystemSolveFailed:		return "线性方程组求解失败";
+    case Error_NormalizationFailed:			return "归一化处理失败";
+    case Error_NormalizationZeroRange:		return "归一化区间为0，无法归一化";
+    case Error_InterpolationFailed:			return "插值运算失败";
+    case Error_FeatureExtractionFailed:	return "特征提取失败";
+    case Error_FeatureDimensionInvalid:		return "输出特征维度非法";
+
+    case Error_KnnKInvalid:					return "KNN的K值非法";
+    case Error_KnnTrainSamplesEmpty:		return "KNN训练样本为空";
+    case Error_KnnDistanceFailed:			return "KNN距离计算失败";
+    case Error_KnnPredictionFailed:			return "KNN预测失败";
+    case Error_PredictedLabelInvalid:		return "预测标签无效";
+
+    case Error_MemoryAllocationFailed:		return "内存分配失败";
+    case Error_StdException:					return "标准异常";
+    case Error_UnknownException:			return "未知异常";
+
+    default:
+        return QString("未知错误码(%1)").arg(static_cast<int>(code));
+    }
+}
+
 void DeviceManager::slot_lamanActControl(int type)
 {
+    switch (type)
+    {
+    case 1://拨杆
+        QTimer::singleShot(m_delayMsL1 + m_larmanDelay, this, [=]() {
+            pushControl(1, true);
 
+            QTimer::singleShot(1000, this, [=]() {
+                pushControl(1, false);
+            });
+        });
+        break;
+
+    case 4://推杆
+        QTimer::singleShot(m_delayMsL2 + m_larmanDelay, this, [=]() {
+            pushControl(2, true);
+
+            QTimer::singleShot(1500, this, [=]() {
+                pushControl(2, false);
+            });
+        });
+        break;
+
+    case 3://万向轮1 左
+        QTimer::singleShot(m_delayMsL3 + m_larmanDelay, this, [=]() {
+            turnControl(1,2);
+
+            QTimer::singleShot(1000, this, [=]() {
+                turnControl(1,3);
+            });
+        });
+        break;
+
+    case 2://万向轮1 右
+        QTimer::singleShot(m_delayMsL3 + m_larmanDelay, this, [=]() {
+            turnControl(1,4);
+
+            QTimer::singleShot(1000, this, [=]() {
+                turnControl(1,5);
+            });
+        });
+        break;
+
+    case 5://万向轮2 左
+        QTimer::singleShot(m_delayMsL4 + m_larmanDelay, this, [=]() {
+            turnControl(2,2);
+
+            QTimer::singleShot(1000, this, [=]() {
+                turnControl(2,3);
+            });
+        });
+        break;
+
+    case 6://万向轮2 右
+        QTimer::singleShot(m_delayMsL4 + m_larmanDelay, this, [=]() {
+            turnControl(2,4);
+
+            QTimer::singleShot(1000, this, [=]() {
+                turnControl(2,5);
+            });
+        });
+        break;
+
+    }
 }
 
 void DeviceManager::execW1IDLE()
@@ -787,30 +943,34 @@ void DeviceManager::wheelReset(int type)
 {
     if(type == wheel1_left_type)//1号轮 左转归正
     {
-        turnControl(1,3);
-        m_curW1State = WheelRealState::IDLE;
+        // turnControl(1,3);
+        // m_curW1State = WheelRealState::IDLE;
+        execW1IDLE();
     }
     else if(type == wheel1_right_type)//1号轮 右转归正
     {
-        turnControl(1,5);
-        m_curW1State = WheelRealState::IDLE;
+        // turnControl(1,5);
+        // m_curW1State = WheelRealState::IDLE;
+        execW1IDLE();
     }
     else if(type == wheel2_left_type)//2号轮 左转归正
     {
-        turnControl(2,3);
-        m_curW2State = WheelRealState::IDLE;
+        // turnControl(2,3);
+        // m_curW2State = WheelRealState::IDLE;
+        execW2IDLE();
     }
     else if(type == wheel2_right_type)//2号轮 右转归正
     {
-        turnControl(2,5);
-        m_curW2State = WheelRealState::IDLE;
+        // turnControl(2,5);
+        // m_curW2State = WheelRealState::IDLE;
+        execW2IDLE();
     }
     else if(type == 8)//1、2号轮回正
     {
-        execW1IDLE();
-        QTimer::singleShot(200, this, [=]() {
-            execW2IDLE();
-        });
+        // execW1IDLE();
+        // QTimer::singleShot(200, this, [=]() {
+        //     execW2IDLE();
+        // });
 
     }
     else{}
@@ -841,7 +1001,7 @@ int DeviceManager::getT1(int type)
 
 int DeviceManager::getT2(int type)
 {
-    int T2 = 1000;
+    int T2 = m_delayMs_afterW2-m_delayMs_afterW1;
     return T2;
 }
 
@@ -884,5 +1044,15 @@ void DeviceManager::slot_onObjectArrived()
 {
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
     LOG_INFO("光栅 识别到物体" + currentTime);
-    lumoCapture(m_XLines);
+    if(m_isFastMode)
+    {
+        lumoCapture(m_XLines);
+    }
+    else
+    {
+        // QTimer::singleShot(m_delayMsL0, this, [=]() {
+        //     larmanCapture();
+        // });
+    }
+
 }
